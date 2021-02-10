@@ -6,16 +6,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using AspDotNetMySqlTemplate.Data;
-using AspDotNetMySqlTemplate.Models;
+using RecipEase.Data;
+using RecipEase.Models;
 
-namespace AspDotNetMySqlTemplate.Pages.Examples
+namespace RecipEase.Pages.Examples
 {
     public class EditModel : PageModel
     {
-        private readonly AspDotNetMySqlTemplate.Data.ExampleContext _context;
+        private readonly RecipEase.Data.ExampleContext _context;
 
-        public EditModel(AspDotNetMySqlTemplate.Data.ExampleContext context)
+        public EditModel(RecipEase.Data.ExampleContext context)
         {
             _context = context;
         }

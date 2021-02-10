@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using AspDotNetMySqlTemplate.Models;
+using RecipEase.Models;
 
-namespace AspDotNetMySqlTemplate.Data
+namespace RecipEase.Data
 {
     public class ExampleContext : DbContext
     {
@@ -14,6 +14,6 @@ namespace AspDotNetMySqlTemplate.Data
         {
         }
 
-        public DbSet<AspDotNetMySqlTemplate.Models.Example> Example { get; set; }
+        public DbSet<RecipEase.Models.Example> Example { get; set; }
     }
 }

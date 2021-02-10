@@ -5,16 +5,16 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using AspDotNetMySqlTemplate.Data;
-using AspDotNetMySqlTemplate.Models;
+using RecipEase.Data;
+using RecipEase.Models;
 
-namespace AspDotNetMySqlTemplate.Pages.Examples
+namespace RecipEase.Pages.Examples
 {
     public class IndexModel : PageModel
     {
-        private readonly AspDotNetMySqlTemplate.Data.ExampleContext _context;
+        private readonly RecipEase.Data.ExampleContext _context;
 
-        public IndexModel(AspDotNetMySqlTemplate.Data.ExampleContext context)
+        public IndexModel(RecipEase.Data.ExampleContext context)
         {
             _context = context;
         }

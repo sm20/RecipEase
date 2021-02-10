@@ -9,9 +9,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
-using AspDotNetMySqlTemplate.Data;
+using RecipEase.Data;
 
-namespace AspDotNetMySqlTemplate
+namespace RecipEase
 {
     public class Startup
     {

@@ -1,5 +1,5 @@
 
-namespace AspDotNetMySqlTemplate.Models {
+namespace RecipEase.Models {
     public class Example
     {
         public int ID { get; set; }

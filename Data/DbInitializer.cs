@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using AspDotNetMySqlTemplate.Models;
+using RecipEase.Models;
 
-namespace AspDotNetMySqlTemplate.Data
+namespace RecipEase.Data
 {
     public static class DbInitializer
     {

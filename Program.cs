@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace AspDotNetMySqlTemplate
+namespace RecipEase
 {
     public class Program
     {
