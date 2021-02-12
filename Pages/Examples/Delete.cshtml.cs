@@ -12,9 +12,9 @@ namespace RecipEase.Pages.Examples
 {
     public class DeleteModel : PageModel
     {
-        private readonly RecipEase.Data.ExampleContext _context;
+        private readonly RecipEase.Data.RecipEaseContext _context;
 
-        public DeleteModel(RecipEase.Data.ExampleContext context)
+        public DeleteModel(RecipEase.Data.RecipEaseContext context)
         {
             _context = context;
         }

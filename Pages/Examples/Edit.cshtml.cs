@@ -13,9 +13,9 @@ namespace RecipEase.Pages.Examples
 {
     public class EditModel : PageModel
     {
-        private readonly RecipEase.Data.ExampleContext _context;
+        private readonly RecipEase.Data.RecipEaseContext _context;
 
-        public EditModel(RecipEase.Data.ExampleContext context)
+        public EditModel(RecipEase.Data.RecipEaseContext context)
         {
             _context = context;
         }

@@ -27,7 +27,7 @@ namespace RecipEase
                 var services = scope.ServiceProvider;
                 try
                 {
-                    var context = services.GetRequiredService<Data.ExampleContext>();
+                    var context = services.GetRequiredService<Data.RecipEaseContext>();
                     Data.DbInitializer.Initialize(context);
                 }
                 catch (Exception ex)

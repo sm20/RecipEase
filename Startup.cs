@@ -28,7 +28,7 @@ namespace RecipEase
             services.AddRazorPages();
 
             string connectionString = Configuration.GetConnectionString("MySqlConnection");
-            services.AddDbContext<ExampleContext>(options =>
+            services.AddDbContext<RecipEaseContext>(options =>
                 options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
             );
 

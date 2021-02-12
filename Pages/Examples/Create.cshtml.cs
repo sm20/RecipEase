@@ -12,9 +12,9 @@ namespace RecipEase.Pages.Examples
 {
     public class CreateModel : PageModel
     {
-        private readonly RecipEase.Data.ExampleContext _context;
+        private readonly RecipEase.Data.RecipEaseContext _context;
 
-        public CreateModel(RecipEase.Data.ExampleContext context)
+        public CreateModel(RecipEase.Data.RecipEaseContext context)
         {
             _context = context;
         }

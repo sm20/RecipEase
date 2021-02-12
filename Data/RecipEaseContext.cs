@@ -7,9 +7,9 @@ using RecipEase.Models;
 
 namespace RecipEase.Data
 {
-    public class ExampleContext : DbContext
+    public class RecipEaseContext : DbContext
     {
-        public ExampleContext (DbContextOptions<ExampleContext> options)
+        public RecipEaseContext (DbContextOptions<RecipEaseContext> options)
             : base(options)
         {
         }

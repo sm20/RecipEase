@@ -12,9 +12,9 @@ namespace RecipEase.Pages.Examples
 {
     public class IndexModel : PageModel
     {
-        private readonly RecipEase.Data.ExampleContext _context;
+        private readonly RecipEase.Data.RecipEaseContext _context;
 
-        public IndexModel(RecipEase.Data.ExampleContext context)
+        public IndexModel(RecipEase.Data.RecipEaseContext context)
         {
             _context = context;
         }

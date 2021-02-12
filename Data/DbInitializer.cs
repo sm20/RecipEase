@@ -8,7 +8,7 @@ namespace RecipEase.Data
 {
     public static class DbInitializer
     {
-        public static void Initialize(ExampleContext context)
+        public static void Initialize(RecipEaseContext context)
         {
             context.Database.EnsureCreated();
 
