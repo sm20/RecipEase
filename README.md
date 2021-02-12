@@ -18,7 +18,7 @@ This is the RecipEase project for CPSC 471 Group 14.
     browser doesn't think the development server is unsafe
     -   You may have to close and reopen your browser to let this take effect
     -   Note: this isn't supported on Linux
--   Create a new MySQL user `myprojectlocaluser` with password `myprojectlocalpw`,
+-   Create a new MySQL user `recipeaselocaluser` with password `recipeaselocalpw`,
     see
     [here](https://dev.mysql.com/doc/workbench/en/wb-mysql-connections-navigator-management-users-and-privileges.html)
     -   Give the user the "DBA" administrative role
