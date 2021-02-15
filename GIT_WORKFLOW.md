@@ -6,12 +6,20 @@
       checkout a branch `blog-comments` from `main`
 2. Make your changes on that branch, commit as you go
 3. When you're done, make sure your branch is up to date with `main` and there
-   are no conflicts, then
+   are no conflicts:
+    - Pull from the remote main to the local main 
+    - Rebase the local feature branch onto local main if the local feature
+      branch has not been pushed, otherwise merge local main into local feature 
 4. Push to the feature branch on the remote, and open a Pull Request with GitHub
     - Add a descriptive name and optionally a description to the PR
-5. Assign at least one reviewer to the PR
+5. Assign project lead as reviewer of the PR 
+    - However, if there’s one person that seems considerably better suited to
+      evaluate the PR, choose that person in addition to the project lead
 6. Reviewer(s) and owner discuss the PR via the comments and GitHub's review
-   feature
+   feature 
+    - If the reviewer and owner are unsure about anything during the review, or
+      if the reviewer is not confident in his ability to review the PR, the
+      third team member must be added as a reviewer 
 7. Once all comments are resolved, the PR can be merged at the next meeting with
    everyone present
     - Only merging at the meetings helps to keep everyone on the same page
