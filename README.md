@@ -25,14 +25,16 @@ This is the RecipEase project for CPSC 471 Group 14.
 
 ## Development
 
--   Run `dotnet watch run` to start the development server
+-   Run `dotnet watch --project ./Server/RecipEase.Server.csproj run` to start the development server
+    -   Make sure this is run from the project root
+    -   Alternatively, run the `watch` task from VSCode
 
 ### Updating the Database Schema
 
 -   Make any changes to the model files
 -   Ensure the EF command line tool is installed by running `dotnet tool install --global dotnet-ef`
 -   Drop the current database `dotnet ef database drop --force`
--   Update the database seeding code in `Data/DbInitializer.cs` if necessary
+-   Update the database seeding code in `Server/Data/DbInitializer.cs` if necessary
 -   Restart the app
 
 Note: it's also possible to use [EF
@@ -44,6 +46,10 @@ but this app is just using fake seeded data so there's no need.
 See
 [here](https://github.com/rynoV/AspDotNetMySqlTemplate#initial-project-creation)
 for details on how the project was initially scaffolded.
+    
+For adding Blazor WebAssembly the template code from the command `dotnet new
+blazorwasm -ho -o AppName` was used and integrated with the code from the above
+template.
 
 ## VSCode Tips
 
@@ -67,7 +73,11 @@ for details on how the project was initially scaffolded.
 ## Resources
 
 -   [EF Core with ASP .NET Tutorial](https://docs.microsoft.com/en-us/aspnet/core/data/ef-rp/intro?view=aspnetcore-5.0&tabs=visual-studio)
-    -   This project is based heavily off of this tutorial
+    -   This project is based off of this tutorial
     -   If you're using Visual Studio, that tutorial has instructions specific to
         Visual Studio that might be helpful
 -   [ASP .NET Getting Started](https://docs.microsoft.com/en-us/aspnet/core/getting-started/?view=aspnetcore-5.0&tabs=windows)
+-   [Debugging Blazor WASM](https://docs.microsoft.com/en-us/aspnet/core/blazor/debug?view=aspnetcore-5.0&tabs=visual-studio-code)
+-   [Call Web API from Blazor WASM](https://docs.microsoft.com/en-us/aspnet/core/blazor/call-web-api?view=aspnetcore-5.0)
+-   [Blazor WASM form validation](https://docs.microsoft.com/en-us/aspnet/core/blazor/forms-validation?view=aspnetcore-5.0)
+-   [Web API apps in .NET](https://docs.microsoft.com/en-us/aspnet/core/web-api/?view=aspnetcore-5.0)
