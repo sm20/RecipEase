@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using RecipEase.Server.Data;
 
 namespace RecipEase.Server
 {
@@ -27,8 +28,8 @@ namespace RecipEase.Server
                 var services = scope.ServiceProvider;
                 try
                 {
-                    var context = services.GetRequiredService<Data.RecipEaseContext>();
-                    Data.DbInitializer.Initialize(context);
+                    var context = services.GetRequiredService<RecipEaseContext>();
+                    DbInitializer.Initialize(context);
                 }
                 catch (Exception ex)
                 {

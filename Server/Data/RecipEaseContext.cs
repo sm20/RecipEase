@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using RecipEase.Shared.Models;
 
-namespace RecipEase.Data
+namespace RecipEase.Server.Data
 {
     public class RecipEaseContext : DbContext
     {
@@ -14,6 +14,6 @@ namespace RecipEase.Data
         {
         }
 
-        public DbSet<RecipEase.Shared.Models.WeatherForecast> WeatherForecasts { get; set; }
+        public DbSet<WeatherForecast> WeatherForecasts { get; set; }
     }
 }

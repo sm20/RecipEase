@@ -33,7 +33,7 @@ This is the RecipEase project for CPSC 471 Group 14.
 
 -   Make any changes to the model files
 -   Ensure the EF command line tool is installed by running `dotnet tool install --global dotnet-ef`
--   Drop the current database `dotnet ef database drop --force`
+-   Drop the current database `dotnet ef --project ./Server/RecipEase.Server.csproj database drop --force`
 -   Update the database seeding code in `Server/Data/DbInitializer.cs` if necessary
 -   Restart the app
 

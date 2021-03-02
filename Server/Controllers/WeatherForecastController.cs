@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using RecipEase.Data;
+using RecipEase.Server.Data;
 using RecipEase.Shared.Models;
 
 namespace RecipEase.Server.Controllers

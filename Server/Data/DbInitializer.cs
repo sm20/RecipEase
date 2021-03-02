@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using RecipEase.Shared.Models;
 
-namespace RecipEase.Data
+namespace RecipEase.Server.Data
 {
     public static class DbInitializer
     {
