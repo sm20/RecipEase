@@ -16,6 +16,7 @@ else
                 <th>Temp. (C)</th>
                 <th>Temp. (F)</th>
                 <th>Summary</th>
+                <th>Humidity</th>
             </tr>
         </thead>
         <tbody>
@@ -26,6 +27,7 @@ else
                     <td>@forecast.TemperatureC</td>
                     <td>@forecast.TemperatureF</td>
                     <td>@forecast.Summary</td>
+                    <td>@forecast.Humidity</td>
                 </tr>
             }
         </tbody>
@@ -56,6 +58,13 @@ else
             <InputText
                 id="summary"
                 @bind-Value="weatherForecast.Summary"
+            />
+        </label>
+
+        <label for="hum">Humidity:
+            <InputNumber
+                id="hum"
+                @bind-Value="weatherForecast.Humidity"
             />
         </label>
 
