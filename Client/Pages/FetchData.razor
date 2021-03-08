@@ -1,4 +1,8 @@
-﻿@using RecipEase.Shared.Models
+﻿@page "/fetchdata"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@attribute [Authorize]
+@using RecipEase.Shared.Models
 @inject HttpClient Http
 
 <p>This component demonstrates fetching and sending data from/to the server.</p>
@@ -78,7 +82,14 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("api/WeatherForecast");
+        try
+        {
+            forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("api/WeatherForecast");
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
     }
 
     private async Task HandleValidSubmit()

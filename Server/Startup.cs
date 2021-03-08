@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -12,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using RecipEase.Server.Data;
 using System.Reflection;
 using System.IO;
+using RecipEase.Server.Models;
 
 namespace RecipEase.Server
 {
@@ -27,8 +29,6 @@ namespace RecipEase.Server
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddRazorPages();
-
             string connectionString = Configuration.GetConnectionString("MySqlConnection");
             services.AddDbContext<RecipEaseContext>(options =>
                 options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
@@ -36,7 +36,17 @@ namespace RecipEase.Server
 
             services.AddDatabaseDeveloperPageExceptionFilter();
 
-            services.AddControllers();
+            services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddEntityFrameworkStores<RecipEaseContext>();
+
+            services.AddIdentityServer()
+                .AddApiAuthorization<ApplicationUser, RecipEaseContext>();
+
+            services.AddAuthentication()
+                .AddIdentityServerJwt();
+
+            services.AddControllersWithViews();
+            services.AddRazorPages();
             services.AddSwaggerGen(c =>
             {
                 // Set the comments path for the Swagger JSON and UI.
@@ -62,6 +72,7 @@ namespace RecipEase.Server
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseMigrationsEndPoint();
                 app.UseWebAssemblyDebugging();
             }
             else
@@ -77,6 +88,8 @@ namespace RecipEase.Server
 
             app.UseRouting();
 
+            app.UseIdentityServer();
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <UserSecretsId>RecipEase.Server-4D53E599-1CD4-40DD-9FCB-E8825AB3CB3C</UserSecretsId>
   </PropertyGroup>
     
   <PropertyGroup>
@@ -42,6 +43,11 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.2" />
     <!-- Provides OpenAPI functionality for the API -->
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
+
+    <!-- Authentication packages -->
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="5.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.ApiAuthorization.IdentityServer" Version="5.0.2" />
   </ItemGroup>
 
   <ItemGroup>
