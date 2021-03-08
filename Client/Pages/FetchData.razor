@@ -78,12 +78,12 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
+        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("api/WeatherForecast");
     }
 
     private async Task HandleValidSubmit()
     {
-        var response = await Http.PostAsJsonAsync<WeatherForecast>("WeatherForecast", weatherForecast);
+        var response = await Http.PostAsJsonAsync<WeatherForecast>("api/WeatherForecast", weatherForecast);
         forecasts = await response.Content.ReadFromJsonAsync<WeatherForecast[]>();
     }
 }
