@@ -6,9 +6,13 @@ This is the RecipEase project for CPSC 471 Group 14.
   - [Prerequisites](#prerequisites)
   - [Development](#development)
     - [Updating the Database Schema](#updating-the-database-schema)
+    - [API Development](#api-development)
+      - [Controller Generation](#controller-generation)
+      - [API Reference Generation](#api-reference-generation)
   - [Initial Project Creation](#initial-project-creation)
   - [VSCode Tips](#vscode-tips)
   - [Resources](#resources)
+
 
 ## Prerequisites
 
@@ -40,6 +44,39 @@ This is the RecipEase project for CPSC 471 Group 14.
 Note: it's also possible to use [EF
 Migrations](https://docs.microsoft.com/en-us/aspnet/core/data/ef-rp/migrations?view=aspnetcore-5.0&tabs=visual-studio-code),
 but this app is just using fake seeded data so there's no need.
+
+### API Development
+
+The API is contained in the `Server` folder and the logic is in the
+`Controllers` folder.
+
+Once the dev server is started, go to https://localhost:5001/swagger/index.html
+for an interactive API explorer.
+
+#### Controller Generation
+
+First run
+
+```
+dotnet tool install -g dotnet-aspnet-codegenerator
+```
+
+Then to generate a controller for a model:
+
+```
+dotnet aspnet-codegenerator --project ./Server/RecipEase.Server.csproj controller -name <ControllerName> -async -api -m <ModelName> -dc RecipEaseContext -outDir Controllers
+```
+
+where you replace `<ControllerName>` with the name of controller class to be
+generated, and `<ModelName>` with the name of a model class from `Shared/Models`
+to generate the controller for. This will add the new controller to
+`Server/Controllers`.
+
+#### API Reference Generation
+
+To generate an API reference PDF, start the dev server, open
+`api-ref-generate.html` in your browser, disable CORS (see the link in the HTML
+for a suggestion on how to do this), and click the button.
 
 ## Initial Project Creation
 
