@@ -3,10 +3,19 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RecipEase.Shared.Models
 {
+    public enum UnitType {
+        Volume, Mass
+    }
+
     public class Unit
     {
-        public string name { get; set; }
-        public string unit_type { get; set; }
-        public string symbol { get; set; }
+        [Key]
+        public string Name { get; set; }
+
+        [Required]
+        public UnitType UnitType { get; set; }
+
+        [Required]
+        public string Symbol { get; set; }
     }
 }

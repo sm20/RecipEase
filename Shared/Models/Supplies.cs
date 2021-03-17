@@ -5,9 +5,12 @@ namespace RecipEase.Shared.Models
 {
     public class Supplies
     {
-        public string ingr_name { get; set; }
-        public string unit_name { get; set; }
-        public string user { get; set; }
-        public int quantity { get; set; }
+        public string IngrName { get; set; } // TODO: fk
+
+        public string UnitName { get; set; } // TODO: fk
+
+        public string User { get; set; } // TODO: fk
+
+        public int Quantity { get; set; }
     }
 }

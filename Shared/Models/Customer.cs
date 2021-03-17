@@ -3,12 +3,21 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RecipEase.Shared.Models
 {
+    public enum Meal {
+        Breakfast, Lunch, Dinner
+    }
+
     public class Customer
     {
-        public string username { get; set; }
-        public string customer_name { get; set; }
-        public int age { get; set; }
-        public double weight { get; set; }
-        public string fav_recipe { get; set; }
+        [Key]
+        public string Username { get; set; } // TODO: foreign key
+
+        public string CustomerName { get; set; }
+
+        public int? Age { get; set; }
+
+        public double? Weight { get; set; }
+
+        public Meal? FavMeal { get; set; }
     }
 }

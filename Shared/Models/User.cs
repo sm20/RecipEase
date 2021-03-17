@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace RecipEase.Shared.Models
@@ -8,12 +9,13 @@ namespace RecipEase.Shared.Models
         [Key]
         [MaxLength(20)]
         [Required]
-        public string username { get; set; }
+        public string Username { get; set; } // TODO: Will be added by authentication system
 
         [MaxLength(64)]
         [Required]
-        public string pword_hash { get; set; }
+        public string PwordHash { get; set; } // TODO: Will be added by authentication system
 
-        public int login_count { get; set; }
+        [DefaultValue(0)]
+        public int LoginCount { get; set; }
     }
 }
