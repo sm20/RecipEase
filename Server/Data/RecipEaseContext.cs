@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using RecipEase.Server.Models;
 using IdentityServer4.EntityFramework.Options;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +10,7 @@ using RecipEase.Shared.Models;
 
 namespace RecipEase.Server.Data
 {
-    public class RecipEaseContext : ApiAuthorizationDbContext<ApplicationUser>
+    public class RecipEaseContext : ApiAuthorizationDbContext<User>
     {
         public RecipEaseContext (
             DbContextOptions options,
@@ -54,6 +53,12 @@ namespace RecipEase.Server.Data
         public DbSet<IngrInShoppingList> IngrInShoppingList { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
+            // Ensure Identity tables are setup correctly
+            base.OnModelCreating(modelBuilder);
+            
+            // Rename the generated user table to match our schema
+            modelBuilder.Entity<User>().ToTable("User");
+
             // Configure composite keys
             modelBuilder.Entity<RecipeCollection>()
                 .HasKey(e => new { e.User, e.Title });
