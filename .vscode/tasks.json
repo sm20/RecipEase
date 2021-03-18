@@ -38,6 +38,20 @@
                 "/consoleloggerparameters:NoSummary"
             ],
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "dropdb",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "ef",
+                "--project",
+                "${workspaceFolder}/Server/RecipEase.Server.csproj",
+                "database",
+                "drop",
+                "--force"
+            ],
+            "problemMatcher": "$msCompile"
         }
     ]
 }

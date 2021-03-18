@@ -45,6 +45,12 @@ Note: it's also possible to use [EF
 Migrations](https://docs.microsoft.com/en-us/aspnet/core/data/ef-rp/migrations?view=aspnetcore-5.0&tabs=visual-studio-code),
 but this app is just using fake seeded data so there's no need.
 
+The schema can be dumped to a file with the following PowerShell command:
+
+```powershell
+& 'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe' -u root -p recipease > schema.sql
+```
+
 ### API Development
 
 The API is contained in the `Server` folder and the logic is in the

@@ -13,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using RecipEase.Server.Data;
 using System.Reflection;
 using System.IO;
-using RecipEase.Server.Models;
+using RecipEase.Shared.Models;
 
 namespace RecipEase.Server
 {
@@ -36,11 +36,11 @@ namespace RecipEase.Server
 
             services.AddDatabaseDeveloperPageExceptionFilter();
 
-            services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<RecipEaseContext>();
 
             services.AddIdentityServer()
-                .AddApiAuthorization<ApplicationUser, RecipEaseContext>();
+                .AddApiAuthorization<User, RecipEaseContext>();
 
             services.AddAuthentication()
                 .AddIdentityServerJwt();
