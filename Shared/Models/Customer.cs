@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RecipEase.Shared.Models
 {
@@ -10,7 +11,8 @@ namespace RecipEase.Shared.Models
     public class Customer
     {
         [Key]
-        public string Username { get; set; } // TODO: foreign key
+        [ForeignKey("User")]
+        public string UserId { get; set; }
 
         public string CustomerName { get; set; }
 
@@ -19,5 +21,8 @@ namespace RecipEase.Shared.Models
         public double? Weight { get; set; }
 
         public Meal? FavMeal { get; set; }
+
+
+        public User User { get; set; }
     }
 }

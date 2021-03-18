@@ -1,15 +1,23 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RecipEase.Shared.Models
 {
     public class RecipeRating
     {
-        public string User { get; set; } // TODO: fk
+        [ForeignKey("Customer")]
+        public string UserId { get; set; }
 
-        public int Recipe { get; set; } // TODO: fk
+        [ForeignKey("Recipe")]
+        public int RecipeId { get; set; }
 
         [Range(1, 5)]
         public int Rating { get; set; }
+        
+
+        public Customer Customer { get; set; }
+
+        public Recipe Recipe { get; set; }
     }
 }

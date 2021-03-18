@@ -1,14 +1,21 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RecipEase.Shared.Models
 {
     public class UnitConversion
     {
-        public string ConvertsToUnit { get; set; } // TODO: fk
+        [ForeignKey("ConvertsToUnit")]
+        public string ConvertsToUnitName { get; set; }
 
-        public string ConvertsFromUnit { get; set; } // TODO: fk
+        [ForeignKey("ConvertsFromUnit")]
+        public string ConvertsFromUnitName { get; set; }
 
         public int Ratio { get; set; }
+        
+
+        public Unit ConvertsToUnit { get; set; }
+        public Unit ConvertsFromUnit { get; set; }
     }
 }

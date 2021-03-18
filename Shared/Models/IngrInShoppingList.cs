@@ -1,16 +1,27 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RecipEase.Shared.Models
 {
     public class IngrInShoppingList
     {
-        public string User { get; set; } // TODO: fk
+        [ForeignKey("Customer")]
+        public string UserId { get; set; }
         
-        public string UnitName { get; set; } // TODO: fk
+        [ForeignKey("Unit")]
+        public string UnitName { get; set; }
         
-        public string IngrName { get; set; } // TODO: fk
+        [ForeignKey("Ingredient")]
+        public string IngrName { get; set; }
         
         public int Quantity { get; set; }
+        
+
+        public Customer Customer { get; set; }
+
+        public Unit Unit { get; set; }
+
+        public Ingredient Ingredient { get; set; }
     }
 }

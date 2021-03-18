@@ -1,11 +1,12 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RecipEase.Shared.Models
 {
     public class Recipe
     {
-        public int ID { get; set; }
+        public int Id { get; set; }
 
         [Required]
         public string Name { get; set; }
@@ -24,6 +25,10 @@ namespace RecipEase.Shared.Models
 
         public double? Calories { get; set; }
 
-        public string Author { get; set; } // TODO: fk
+        [ForeignKey("Author")]
+        public string AuthorId { get; set; }
+        
+
+        public Customer Author { get; set; }
     }
 }

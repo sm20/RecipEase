@@ -1,13 +1,15 @@
 using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RecipEase.Shared.Models
 {
     public class Supplier
     {
         [Key]
-        public string Username { get; set; } // TODO: foreign key
+        [ForeignKey("User")]
+        public string UserId { get; set; }
 
         [EmailAddress]
         public string Email { get; set; }
@@ -25,5 +27,8 @@ namespace RecipEase.Shared.Models
         [Range(0, Double.PositiveInfinity)]
         [DefaultValue(0)]
         public int StoreVisitCount { get; set; }
+
+
+        public User User { get; set; }
     }
 }

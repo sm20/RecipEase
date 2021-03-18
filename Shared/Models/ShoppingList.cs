@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RecipEase.Shared.Models
 {
@@ -8,10 +9,14 @@ namespace RecipEase.Shared.Models
         public string Name { get; set; }
 
         [Key]
-        public string User { get; set; } // TODO: fk
+        [ForeignKey("Customer")]
+        public string UserId { get; set; }
 
         public DateTime LastUpdate { get; set; }
 
         public int NumIngredients { get; set; } // TODO: Calculated?
+        
+
+        public Customer Customer { get; set; }
     }
 }
