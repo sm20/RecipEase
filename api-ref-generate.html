@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://unpkg.com/rapipdf/dist/rapipdf-min.js"></script>
+    </head>
+    <body>
+        <p>
+            Start the dev server and ensure CORS is disabled in your browser,
+            then click the button to generate the documentation.
+
+            <a
+                href="https://github.com/balvin-perrie/Access-Control-Allow-Origin---Unblock/"
+                >This plugin can be used to disable CORS.</a
+            >
+        </p>
+        <rapi-pdf
+            style="width: 700px; height: 40px; font-size: 18px"
+            spec-url="https://localhost:5001/swagger/v1/swagger.json"
+        >
+        </rapi-pdf>
+    </body>
+</html>
