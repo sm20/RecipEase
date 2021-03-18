@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -18,5 +19,7 @@ namespace RecipEase.Shared.Models
         
 
         public Customer Customer { get; set; }
+        
+        public ICollection<IngrInShoppingList> Ingredients { get; set; }
     }
 }

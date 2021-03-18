@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace RecipEase.Shared.Models
@@ -15,5 +16,8 @@ namespace RecipEase.Shared.Models
         public Rarity? Rarity { get; set; }
 
         public double WeightToVolRatio { get; set; }
+        
+
+        public ICollection<Supplies> SuppliedBy { get; set; }
     }
 }

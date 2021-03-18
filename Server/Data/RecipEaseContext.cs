@@ -88,7 +88,7 @@ namespace RecipEase.Server.Data
             // Configure composite foreign keys
             modelBuilder.Entity<RecipeInCollection>()
                 .HasOne<RecipeCollection>(e => e.Collection)
-                .WithMany(e => e.InCollections)
+                .WithMany(e => e.Recipes)
                 .HasForeignKey(e => 
                     // Note that the order these are declared is important, they
                     // should line up with the order of the keys they're referencing

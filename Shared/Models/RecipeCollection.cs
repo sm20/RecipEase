@@ -26,6 +26,6 @@ namespace RecipEase.Shared.Models
 
         public Customer Customer { get; set; }
         
-        public ICollection<RecipeInCollection> InCollections { get; set; }
+        public ICollection<RecipeInCollection> Recipes { get; set; }
     }
 }

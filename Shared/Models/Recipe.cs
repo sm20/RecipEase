@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -30,5 +31,11 @@ namespace RecipEase.Shared.Models
         
 
         public Customer Author { get; set; }
+        
+        public ICollection<RecipeInCategory> Categories { get; set; }
+        
+        public ICollection<Uses> UsesIngredients { get; set; }
+        
+        public ICollection<RecipeRating> Ratings { get; set; }
     }
 }
