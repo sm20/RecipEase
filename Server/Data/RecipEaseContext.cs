@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using RecipEase.Shared.Models;
+using RecipEase.Shared.Models.Api;
 
 namespace RecipEase.Server.Data
 {
@@ -94,5 +95,7 @@ namespace RecipEase.Server.Data
                     // should line up with the order of the keys they're referencing
                     new { e.CollectionUserId, e.CollectionTitle });
         }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiRecipe> ApiRecipe { get; set; }
     }
 }
