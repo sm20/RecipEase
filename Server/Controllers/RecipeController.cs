@@ -177,13 +177,26 @@ namespace RecipEase.Server.Controllers
         }
 
         /// <summary>
-        /// Documentation
+        /// Delete a recipe.
         /// </summary>
         /// <remarks>
         ///
-        /// More documentation.
+        /// Deletes the given recipe in the database.
+        ///
+        /// If the recipe does not exist in the database, a 404 status code is
+        /// returned. The customer specified by `AuthorId` in the found recipe
+        /// must be the authenticated user making this request.
+        ///
+        /// This endpoint interacts with the `recipe` and `customer` tables. The
+        /// `UserId` attribute on the `customer` table will be checked against
+        /// the `AuthorId` from the `recipe` table.
+        ///
+        /// The endpoint will perform a `select` query on the `customer` table
+        /// to validate the `authorId`, and a `delete` command on the `recipe`
+        /// table to delete the recipe.
         ///
         /// </remarks>
+        /// <param name="id">The id of the recipe to update.</param>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteRecipe(int id)
         {
