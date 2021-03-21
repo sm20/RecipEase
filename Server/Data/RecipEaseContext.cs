@@ -68,6 +68,9 @@ namespace RecipEase.Server.Data
             modelBuilder.Entity<RecipeRating>()
                 .HasKey(e => new { e.UserId, e.RecipeId });
 
+            modelBuilder.Entity<ApiRecipeRating>()
+                .HasKey(e => new { e.UserId, e.RecipeId });
+
             modelBuilder.Entity<RecipeInCollection>()
                 .HasKey(e => new { e.RecipeId, e.CollectionUserId, e.CollectionTitle });
 
@@ -97,5 +100,7 @@ namespace RecipEase.Server.Data
         }
 
         public DbSet<RecipEase.Shared.Models.Api.ApiRecipe> ApiRecipe { get; set; }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiRecipeRating> ApiRecipeRating { get; set; }
     }
 }
