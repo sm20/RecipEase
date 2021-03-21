@@ -32,7 +32,7 @@ namespace RecipEase.Server.Controllers
         ///
         /// </remarks>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ApiRecipe>>> GetApiRecipe()
+        public async Task<ActionResult<IEnumerable<ApiRecipe>>> GetRecipe()
         {
             return await _context.ApiRecipe.ToListAsync();
         }
@@ -46,7 +46,7 @@ namespace RecipEase.Server.Controllers
         ///
         /// </remarks>
         [HttpGet("{id}")]
-        public async Task<ActionResult<ApiRecipe>> GetApiRecipe(int id)
+        public async Task<ActionResult<ApiRecipe>> GetRecipe(int id)
         {
             var apiRecipe = await _context.ApiRecipe.FindAsync(id);
 
@@ -68,7 +68,7 @@ namespace RecipEase.Server.Controllers
         /// </remarks>
         [HttpPut("{id}")]
         [Consumes("application/json")]
-        public async Task<IActionResult> PutApiRecipe(int id, ApiRecipe apiRecipe)
+        public async Task<IActionResult> PutRecipe(int id, ApiRecipe apiRecipe)
         {
             if (id != apiRecipe.Id)
             {
@@ -83,7 +83,7 @@ namespace RecipEase.Server.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ApiRecipeExists(id))
+                if (!RecipeExists(id))
                 {
                     return NotFound();
                 }
@@ -106,7 +106,7 @@ namespace RecipEase.Server.Controllers
         /// </remarks>
         [HttpPost]
         [Consumes("application/json")]
-        public async Task<ActionResult<ApiRecipe>> PostApiRecipe(ApiRecipe apiRecipe)
+        public async Task<ActionResult<ApiRecipe>> PostRecipe(ApiRecipe apiRecipe)
         {
             _context.ApiRecipe.Add(apiRecipe);
             await _context.SaveChangesAsync();
@@ -123,7 +123,7 @@ namespace RecipEase.Server.Controllers
         ///
         /// </remarks>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteApiRecipe(int id)
+        public async Task<IActionResult> DeleteRecipe(int id)
         {
             var apiRecipe = await _context.ApiRecipe.FindAsync(id);
             if (apiRecipe == null)
@@ -137,7 +137,7 @@ namespace RecipEase.Server.Controllers
             return Ok();
         }
 
-        private bool ApiRecipeExists(int id)
+        private bool RecipeExists(int id)
         {
             return _context.ApiRecipe.Any(e => e.Id == id);
         }
