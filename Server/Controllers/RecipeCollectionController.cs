@@ -121,11 +121,32 @@ namespace RecipEase.Server.Controllers
             return CreatedAtAction("GetApiRecipeCollection", new { id = apiRecipeCollection.UserId }, apiRecipeCollection);
         }
 
-        // DELETE: api/RecipeCollection/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRecipeCollection(string id)
+        /// <summary>
+        /// Delete a recipe collection.
+        /// </summary>
+        /// <remarks>
+        ///
+        /// Deletes the given recipe collection in the database.
+        ///
+        /// If the recipe collection does not exist in the database, a 404
+        /// status code is returned. The customer specified by `UserId` in the
+        /// found recipe collection must be the authenticated user making this
+        /// request.
+        ///
+        /// This endpoint interacts with the `recipecollection` and `customer`
+        /// tables. The `UserId` attribute on the `customer` table will be
+        /// checked against the `UserId` from the `recipecollection` table.
+        ///
+        /// The endpoint will perform a `select` query on the `customer` table
+        /// to validate the `UserId`, and a `delete` command on the
+        /// `recipecollection` table to delete the recipe collection.
+        ///
+        /// </remarks>
+        /// <param name="title">The title of the recipe collection to delete.</param>
+        [HttpDelete("{title}")]
+        public async Task<IActionResult> DeleteRecipeCollection(string title)
         {
-            var apiRecipeCollection = await _context.ApiRecipeCollection.FindAsync(id);
+            var apiRecipeCollection = await _context.ApiRecipeCollection.FindAsync(title);
             if (apiRecipeCollection == null)
             {
                 return NotFound();
@@ -134,7 +155,7 @@ namespace RecipEase.Server.Controllers
             _context.ApiRecipeCollection.Remove(apiRecipeCollection);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok();
         }
 
         private bool RecipeCollectionExists(string id)
