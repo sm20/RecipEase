@@ -125,11 +125,27 @@ namespace RecipEase.Server.Controllers
         }
 
         /// <summary>
-        /// Documentation
+        /// Create a recipe.
         /// </summary>
         /// <remarks>
         ///
-        /// More documentation.
+        /// Adds the given recipe to the database, and returns it on success. If
+        /// the `id` is specified for the recipe, the endpoint will attempt to
+        /// add the recipe to the database with that `id`. If a recipe with the
+        /// given `id` already exists, an error code is returned. If the `id` is
+        /// not specified, the `id` is automatically generated for the given
+        /// recipe.
+        ///
+        /// The customer specified by `authorId` must be the authenticated user
+        /// making this request.
+        ///
+        /// This endpoint interacts with the `recipe` and `customer` tables. The
+        /// `UserId` attribute on the `customer` table will be checked against
+        /// the `authorId`.
+        ///
+        /// The endpoint will perform a `select` query on the `customer` table
+        /// to validate the `authorId`, and an `insert` command on the `recipe`
+        /// table to add the recipe.
         ///
         /// </remarks>
         [HttpPost]
