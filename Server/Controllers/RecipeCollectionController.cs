@@ -76,8 +76,27 @@ namespace RecipEase.Server.Controllers
             return NoContent();
         }
 
-        // POST: api/RecipeCollection
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Create a recipe collection.
+        /// </summary>
+        /// <remarks>
+        ///
+        /// Adds the given recipe collection to the database, and returns it on
+        /// success. The `title` must be unique across all recipe collections
+        /// for the given user; if it isn't an error code will be returned.
+        ///
+        /// The customer specified by `userId` must be the authenticated user
+        /// making this request.
+        ///
+        /// This endpoint interacts with the `recipecollection` and `customer`
+        /// tables. The `UserId` attribute on the `customer` table will be
+        /// checked against the `userId`.
+        ///
+        /// The endpoint will perform an `insert` command on the
+        /// `recipecollection` table to add the recipe collection, and foreign
+        /// key constraints will be relied upon to validate the `userId`.
+        ///
+        /// </remarks>
         [HttpPost]
         [Consumes("application/json")]
         public async Task<ActionResult<ApiRecipeCollection>> PostRecipeCollection(ApiRecipeCollection apiRecipeCollection)
