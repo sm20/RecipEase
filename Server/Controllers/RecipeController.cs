@@ -31,20 +31,6 @@ namespace RecipEase.Server.Controllers
         /// More documentation.
         ///
         /// </remarks>
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ApiRecipe>>> GetRecipe()
-        {
-            return await _context.ApiRecipe.ToListAsync();
-        }
-
-        /// <summary>
-        /// Documentation
-        /// </summary>
-        /// <remarks>
-        ///
-        /// More documentation.
-        ///
-        /// </remarks>
         [HttpGet("{id}")]
         public async Task<ActionResult<ApiRecipe>> GetRecipe(int id)
         {
@@ -56,6 +42,29 @@ namespace RecipEase.Server.Controllers
             }
 
             return apiRecipe;
+        }
+
+        /// <summary>
+        /// Get a list of recipes.
+        /// </summary>
+        /// <remarks>
+        ///
+        /// Returns a list of recipes from the database, optionally filtered by
+        /// title.
+        ///
+        /// This endpoint interacts with all attributes in the `recipe` table.
+        /// 
+        /// The endpoint performs a `select *` query, with a `where` clause
+        /// included when necessary to apply the specified filters.
+        ///
+        /// </remarks>
+        /// <param name="titleMatch">String to filter recipes by title. If
+        /// provided, only recipes with the filter string in their title (case
+        /// insensitive) will be returned.</param>
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<ApiRecipe>>> GetRecipes(string titleMatch)
+        {
+            return await _context.ApiRecipe.ToListAsync();
         }
 
         /// <summary>
