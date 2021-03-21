@@ -26,5 +26,7 @@ namespace RecipEase.Shared.Models.Api
         public double? Calories { get; set; }
 
         public string AuthorId { get; set; }
+
+        public double? AverageRating { get; set; }
     }
 }

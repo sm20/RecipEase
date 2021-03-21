@@ -24,13 +24,25 @@ namespace RecipEase.Server.Controllers
         }
 
         /// <summary>
-        /// Documentation
+        /// Get a recipe.
         /// </summary>
         /// <remarks>
         ///
-        /// More documentation.
+        /// Returns the recipe with the given `id`, or gives a 404 status code
+        /// if it doesn't exist in the database. The recipe will include it's
+        /// average rating if it has been rated.
+        /// 
+        /// This endpoint interacts with all attributes from the `recipe` table,
+        /// and with the `RecipeId` and `Rating` attributes from the
+        /// `reciperating` table.
+        /// 
+        /// The endpoint performs a `select *` query with a `where` clause
+        /// to find the specified recipe. If the recipe was found, the
+        /// `reciperating` table is queried for rows with `RecipeId` matching
+        /// the found id, and the `Rating` attribute is collected.
         ///
         /// </remarks>
+        /// <param name="id">The id of the recipe to return.</param>
         [HttpGet("{id}")]
         public async Task<ActionResult<ApiRecipe>> GetRecipe(int id)
         {
