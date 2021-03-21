@@ -91,13 +91,27 @@ namespace RecipEase.Server.Controllers
         }
 
         /// <summary>
-        /// Documentation
+        /// Edit a recipe.
         /// </summary>
         /// <remarks>
         ///
-        /// More documentation.
+        /// Updates the given recipe in the database. The `id` in the url 
+        /// must match the `id` in the recipe.
+        ///
+        /// The customer specified by `authorId` must be the authenticated user
+        /// making this request.
+        ///
+        /// This endpoint interacts with the `recipe` and `customer` tables. The
+        /// `UserId` attribute on the `customer` table will be checked against
+        /// the `authorId`.
+        ///
+        /// The endpoint will perform a `select` query on the `customer` table
+        /// to validate the `authorId`, and an `update` command on the `recipe`
+        /// table to update the recipe.
         ///
         /// </remarks>
+        /// <param name="id">The id of the recipe to update.</param>
+        /// <param name="apiRecipe"></param>
         [HttpPut("{id}")]
         [Consumes("application/json")]
         public async Task<IActionResult> PutRecipe(int id, ApiRecipe apiRecipe)
