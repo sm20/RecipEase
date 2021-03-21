@@ -62,15 +62,17 @@ namespace RecipEase.Server.Controllers
         /// <remarks>
         ///
         /// Returns a list of recipes from the database, optionally filtered by
-        /// title or category.
+        /// title, category, and/or user id.
         ///
         /// This endpoint interacts with all attributes in the `recipe` and
-        /// `recipeincategory` tables.
+        /// `recipeincategory` tables, and the `UserId` attribute in the
+        /// `Customer` table.
         ///
         /// The endpoint performs a `select *` query, with a `where` clause
         /// included when necessary to apply the specified filters. The `recipe`
         /// table is optionally joined with `recipeincategory` to filter by
-        /// category.
+        /// category. The `recipe` table is optionally joined with the
+        /// `customer` table to filter by customer.
         ///
         /// </remarks>
         /// <param name="titleMatch">String to filter recipes by title. If
@@ -80,8 +82,10 @@ namespace RecipEase.Server.Controllers
         /// provided, only recipes in the given category will be returned. If
         /// there is no category with the given name in the database, no recipes
         /// will be returned.</param>
+        /// <param name="userId">Get only recipes authored by the customer with this
+        /// id.</param>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ApiRecipe>>> GetRecipes(string titleMatch, string categoryName)
+        public async Task<ActionResult<IEnumerable<ApiRecipe>>> GetRecipes(string titleMatch, string categoryName, string userId)
         {
             return await _context.ApiRecipe.ToListAsync();
         }
