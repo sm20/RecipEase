@@ -23,25 +23,25 @@ namespace RecipEase.Server.Controllers
             _context = context;
         }
 
-        // GET: api/RecipeCollection
+        /// <summary>
+        /// Get recipe collections.
+        /// </summary>
+        /// <remarks>
+        ///
+        /// Returns the recipe collections of the user with given `userId`.
+        ///
+        /// This endpoint interacts with the `recipecollection` table.
+        ///
+        /// The endpoint performs a `select *` query with a `where` clause to
+        /// find the specified recipe collections.
+        ///
+        /// </remarks>
+        /// <param name="userId">The id of the customer whose recipe collections
+        /// should be returned.</param>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ApiRecipeCollection>>> GetRecipeCollection()
+        public async Task<ActionResult<IEnumerable<ApiRecipeCollection>>> GetRecipeCollection(string userId)
         {
-            return await _context.ApiRecipeCollection.ToListAsync();
-        }
-
-        // GET: api/RecipeCollection/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ApiRecipeCollection>> GetRecipeCollection(string id)
-        {
-            var apiRecipeCollection = await _context.ApiRecipeCollection.FindAsync(id);
-
-            if (apiRecipeCollection == null)
-            {
-                return NotFound();
-            }
-
-            return apiRecipeCollection;
+            return await this._context.ApiRecipeCollection.ToListAsync();
         }
 
         // PUT: api/RecipeCollection/5
