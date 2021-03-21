@@ -44,38 +44,6 @@ namespace RecipEase.Server.Controllers
             return await this._context.ApiRecipeCollection.ToListAsync();
         }
 
-        // PUT: api/RecipeCollection/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        [Consumes("application/json")]
-        public async Task<IActionResult> PutRecipeCollection(string id, ApiRecipeCollection apiRecipeCollection)
-        {
-            if (id != apiRecipeCollection.UserId)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(apiRecipeCollection).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!RecipeCollectionExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
         /// <summary>
         /// Create a recipe collection.
         /// </summary>
