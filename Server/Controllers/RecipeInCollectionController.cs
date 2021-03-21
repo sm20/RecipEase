@@ -45,8 +45,29 @@ namespace RecipEase.Server.Controllers
             return await _context.ApiRecipeInCollection.ToListAsync();
         }
 
-        // POST: api/RecipeInCollection
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Add a recipe to a collection.
+        /// </summary>
+        /// <remarks>
+        ///
+        /// Adds the given recipe to the given recipe collection in the
+        /// database, and returns it on success. If the given recipe or recipe
+        /// collection do not exist, an error code is returned.
+        ///
+        /// The authenticated user making this request must be the owner of the
+        /// collection.
+        ///
+        /// This endpoint interacts with the `recipe`, `customer`,
+        /// `recipeincollection`, and `recipecollection` tables. The keys in the
+        /// payload will be checked against the rows in `recipe` and
+        /// `recipeincollection`.
+        ///
+        /// The endpoint will perform an `insert` command on the
+        /// `recipeincollection` table to add the recipe to the collection, and
+        /// foreign key constraints will be relied upon to validate recipe
+        /// collection and recipe keys.
+        ///
+        /// </remarks>
         [HttpPost]
         public async Task<ActionResult<ApiRecipeInCollection>> PostRecipeInCollection(ApiRecipeInCollection apiRecipeInCollection)
         {
@@ -70,11 +91,33 @@ namespace RecipEase.Server.Controllers
             return CreatedAtAction("GetApiRecipeInCollection", new { id = apiRecipeInCollection.RecipeId }, apiRecipeInCollection);
         }
 
-        // DELETE: api/RecipeInCollection/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRecipeInCollection(int id)
+        /// <summary>
+        /// Remove a recipe from a collection.
+        /// </summary>
+        /// <remarks>
+        ///
+        /// Adds the given recipe to the given recipe collection in the
+        /// database, and returns it on success. If the given recipe or recipe
+        /// collection do not exist, an error code is returned.
+        ///
+        /// The authenticated user making this request must be the owner of the
+        /// collection.
+        ///
+        /// This endpoint interacts with the `recipe`, `customer`,
+        /// `recipeincollection`, and `recipecollection` tables. The keys in the
+        /// payload will be checked against the rows in `recipe` and
+        /// `recipeincollection`.
+        ///
+        /// The endpoint will perform a `delete` command on the
+        /// `recipeincollection` table to remove the recipe from the collection,
+        /// and foreign key constraints will be relied upon to validate recipe
+        /// collection and recipe keys.
+        ///
+        /// </remarks>
+        [HttpDelete]
+        public async Task<IActionResult> DeleteRecipeInCollection(ApiRecipeInCollection apiRecipeInCollection)
         {
-            var apiRecipeInCollection = await _context.ApiRecipeInCollection.FindAsync(id);
+            // var apiRecipeInCollection = await _context.ApiRecipeInCollection.FindAsync(id);
             if (apiRecipeInCollection == null)
             {
                 return NotFound();
@@ -83,7 +126,7 @@ namespace RecipEase.Server.Controllers
             _context.ApiRecipeInCollection.Remove(apiRecipeInCollection);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok();
         }
 
         private bool RecipeInCollectionExists(int id)
