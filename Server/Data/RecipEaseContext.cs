@@ -65,10 +65,19 @@ namespace RecipEase.Server.Data
             modelBuilder.Entity<RecipeCollection>()
                 .HasKey(e => new { e.UserId, e.Title });
 
+            modelBuilder.Entity<ApiRecipeCollection>()
+                .HasKey(e => new { e.UserId, e.Title });
+
             modelBuilder.Entity<RecipeRating>()
                 .HasKey(e => new { e.UserId, e.RecipeId });
 
+            modelBuilder.Entity<ApiRecipeRating>()
+                .HasKey(e => new { e.UserId, e.RecipeId });
+
             modelBuilder.Entity<RecipeInCollection>()
+                .HasKey(e => new { e.RecipeId, e.CollectionUserId, e.CollectionTitle });
+
+            modelBuilder.Entity<ApiRecipeInCollection>()
                 .HasKey(e => new { e.RecipeId, e.CollectionUserId, e.CollectionTitle });
 
             modelBuilder.Entity<RecipeInCategory>()
@@ -77,7 +86,13 @@ namespace RecipEase.Server.Data
             modelBuilder.Entity<UnitConversion>()
                 .HasKey(e => new { e.ConvertsFromUnitName, e.ConvertsToUnitName });
 
+            modelBuilder.Entity<ApiUnitConversion>()
+                .HasKey(e => new { e.ConvertsFromUnitName, e.ConvertsToUnitName });
+
             modelBuilder.Entity<Supplies>()
+                .HasKey(e => new { e.UserId, e.IngrName, e.UnitName });
+
+            modelBuilder.Entity<ApiSupplies>()
                 .HasKey(e => new { e.UserId, e.IngrName, e.UnitName });
 
             modelBuilder.Entity<Uses>()
@@ -89,11 +104,14 @@ namespace RecipEase.Server.Data
             modelBuilder.Entity<IngrInShoppingList>()
                 .HasKey(e => new { e.UserId, e.UnitName, e.IngrName });
 
+            modelBuilder.Entity<ApiIngrInShoppingList>()
+                .HasKey(e => new { e.UserId, e.UnitName, e.IngrName });
+
             // Configure composite foreign keys
             modelBuilder.Entity<RecipeInCollection>()
                 .HasOne<RecipeCollection>(e => e.Collection)
                 .WithMany(e => e.Recipes)
-                .HasForeignKey(e => 
+                .HasForeignKey(e =>
                     // Note that the order these are declared is important, they
                     // should line up with the order of the keys they're referencing
                     new { e.CollectionUserId, e.CollectionTitle });
@@ -102,5 +120,29 @@ namespace RecipEase.Server.Data
         public DbSet<RecipEase.Shared.Models.Api.ApiRecipe> ApiRecipe { get; set; }
 
         public DbSet<RecipEase.Shared.Models.Api.ApiUses> ApiUses { get; set; }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiSupplies> ApiSupplies { get; set; }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiSupplier> ApiSupplier { get; set; }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiCustomer> ApiCustomer { get; set; }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiShoppingList> ApiShoppingList { get; set; }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiUnit> ApiUnit { get; set; }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiUnitConversion> ApiUnitConversion { get; set; }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiIngredient> ApiIngredient { get; set; }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiIngrInShoppingList> ApiIngrInShoppingList { get; set; }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiRecipeRating> ApiRecipeRating { get; set; }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiRecipeCollection> ApiRecipeCollection { get; set; }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiRecipeInCollection> ApiRecipeInCollection { get; set; }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiUser> ApiUser { get; set; }
     }
 }
