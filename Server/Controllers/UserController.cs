@@ -73,6 +73,7 @@ namespace RecipEase.Server.Controllers
         ///
         /// Updates information of existing user
         /// if the user exists in the User table of the database.
+        /// The authenticated user must be the user to be updated.
         ///
         /// An Update operation is used to update the User in the database if
         /// the user exists.
@@ -116,7 +117,6 @@ namespace RecipEase.Server.Controllers
         ///
         /// Add a new User to the User relation,
         /// if the username does not exist in the User relation of the database.
-        ///
         /// 
         /// An Insert  operation to insert a new User is performed.
         /// </remarks>
@@ -152,7 +152,7 @@ namespace RecipEase.Server.Controllers
         ///
         /// Delete a User from the database,
         /// if the user exists in the User relation of the database.
-        ///
+        /// The authenticated user must be the user to be deleted.
         /// 
         /// A Delete operation to delete a User is performed.
         /// </remarks>
