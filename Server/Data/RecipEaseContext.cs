@@ -83,6 +83,9 @@ namespace RecipEase.Server.Data
             modelBuilder.Entity<Uses>()
                 .HasKey(e => new { e.IngrName, e.RecipeId, e.UnitName });
 
+            modelBuilder.Entity<ApiUses>()
+                .HasKey(e => new { e.IngrName, e.RecipeId, e.UnitName });
+
             modelBuilder.Entity<IngrInShoppingList>()
                 .HasKey(e => new { e.UserId, e.UnitName, e.IngrName });
 
