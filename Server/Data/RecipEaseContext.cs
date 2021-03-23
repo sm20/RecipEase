@@ -98,6 +98,9 @@ namespace RecipEase.Server.Data
             modelBuilder.Entity<Uses>()
                 .HasKey(e => new { e.IngrName, e.RecipeId, e.UnitName });
 
+            modelBuilder.Entity<ApiUses>()
+                .HasKey(e => new { e.IngrName, e.RecipeId, e.UnitName });
+
             modelBuilder.Entity<IngrInShoppingList>()
                 .HasKey(e => new { e.UserId, e.UnitName, e.IngrName });
 
@@ -115,6 +118,8 @@ namespace RecipEase.Server.Data
         }
 
         public DbSet<RecipEase.Shared.Models.Api.ApiRecipe> ApiRecipe { get; set; }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiUses> ApiUses { get; set; }
 
         public DbSet<RecipEase.Shared.Models.Api.ApiSupplies> ApiSupplies { get; set; }
 
