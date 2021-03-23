@@ -11,6 +11,7 @@ using RecipEase.Shared.Models.Api;
 namespace RecipEase.Server.Controllers
 {
     [Route("api/[controller]")]
+    [Produces("application/json")]
     [ApiController]
     public class UnitConverseController : ControllerBase
     {
@@ -22,31 +23,43 @@ namespace RecipEase.Server.Controllers
         }
 
         /// <summary>
-        /// Returns all the unit conversion
+        /// Get all unit conversion
         /// </summary>
         /// <remarks>
-        ///retrieve all unit conversion from the UnitConversion table.
         ///
+        /// functionalities : retrieve all unitconversion in UnitConversion
+        /// 
+        /// database: UnitConversion
+        /// 
+        /// constraints: no constraints
+        /// 
+        /// query: select * from UnitConversion
+        /// 
         /// </remarks>
         [HttpGet]
+        [Route("all")]
         public async Task<ActionResult<IEnumerable<ApiUnitConversion>>> GetApiUnitConversion()
         {
             return await _context.ApiUnitConversion.ToListAsync();
         }
 
         /// <summary>
-        /// Returns the unit conversion  with the given ids
+        /// Get  unit conversion from one unit to another
         /// </summary>
         /// <remarks>
         ///
-        /// Retrieves unit conversion with the given names in the ConvertsToUnitName column and 
-        /// ConvertsFromUnitName column.
-        ///
+        /// functionalities : retrieve all unitconversion in UnitConversion
+        /// 
+        /// database: UnitConversion, Unit
+        /// 
+        /// constraints: two unit must be the same unit type
+        /// 
+        /// query: select * from UnitConversion where ConvertsToUnitName = id1 and 
+        /// ConvertsFromUnitName = id2
+        /// 
         /// </remarks>
-        /// <param name="id1">The Name of the Unit to converse to.</param>
-        /// <param name="id2">The Name of the Unit to converse from.</param>
 
-        [HttpGet("{id1, id2}")]
+        [HttpGet]
         public async Task<ActionResult<ApiUnitConversion>> GetApiUnitConversion(string id1, string id2)
         {
             var apiUnitConversion = _context.ApiUnitConversion.Find(id1, id2);
@@ -59,108 +72,7 @@ namespace RecipEase.Server.Controllers
             return apiUnitConversion;
         }
 
-        // /// <summary>
-        // /// Edit the unit conversion  with the given ids
-        // /// </summary>
-        // /// <remarks>
-        // /// 
-        // /// Only an authenticated admin can make this request.
-        // /// Edit the  unit conversion  with the given names in the ConvertsToUnitName column and 
-        // /// ConvertsFromUnitName column.
-        // ///
-        // /// </remarks>
-        // /// <param name="id1">The Name of the Unit to converse to.</param>
-        // /// <param name="id2">The Name of the Unit to converse from.</param>
-        // [HttpPut("{id1, id2}")]
-        // public async Task<IActionResult> PutApiUnitConversion(string id1, string id2, ApiUnitConversion apiUnitConversion)
-        // {
-        //     if (id1 != apiUnitConversion.ConvertsToUnitName && id2 != apiUnitConversion.ConvertsFromUnitName)
-        //     {
-        //         return BadRequest();
-        //     }
 
-        //     _context.Entry(apiUnitConversion).State = EntityState.Modified;
-
-        //     try
-        //     {
-        //         await _context.SaveChangesAsync();
-        //     }
-        //     catch (DbUpdateConcurrencyException)
-        //     {
-        //         if (!ApiUnitConversionExists(id1))
-        //         {
-        //             return NotFound();
-        //         }
-        //         else
-        //         {
-        //             throw;
-        //         }
-        //     }
-
-        //     return NoContent();
-        // }
-
-        // /// <summary>
-        // /// create a unit conversion
-        // /// </summary>
-        // /// <remarks>
-        // ///
-        // /// create a new unit conversion.
-        // /// Only an authenticated admin can make this request.
-        // /// given names should not exists in the database
-        // /// </remarks>
-
-        // [HttpPost]
-        // public async Task<ActionResult<ApiUnitConversion>> PostApiUnitConversion(ApiUnitConversion apiUnitConversion)
-        // {
-        //     _context.ApiUnitConversion.Add(apiUnitConversion);
-        //     try
-        //     {
-        //         await _context.SaveChangesAsync();
-        //     }
-        //     catch (DbUpdateException)
-        //     {
-        //         if (ApiUnitConversionExists(apiUnitConversion.ConvertsFromUnitName))
-        //         {
-        //             return Conflict();
-        //         }
-        //         else
-        //         {
-        //             throw;
-        //         }
-        //     }
-
-        //     return CreatedAtAction("GetApiUnitConversion", new { id = apiUnitConversion.ConvertsFromUnitName }, apiUnitConversion);
-        // }
-
-        // /// <summary>
-        // /// delete the unit with the given ids
-        // /// </summary>
-        // /// <remarks>
-        // ///
-        // /// Delete the given unit conversion
-        // ///
-        // /// Only an authenticated admin can make this request.
-        // ///
-        // /// The endpoint will perform an `delete from` command on the `unit conversion` table
-        // /// </remarks>
-        // /// <param name="id1">The Name of the Unit to converse to.</param>
-        // /// <param name="id2">The Name of the Unit to converse from.</param>
-
-        // [HttpDelete("{id1, id2}")]
-        // public async Task<IActionResult> DeleteApiUnitConversion(string id1, string id2)
-        // {
-        //     var apiUnitConversion = _context.ApiUnitConversion.Find(id1, id2);
-        //     if (apiUnitConversion == null)
-        //     {
-        //         return NotFound();
-        //     }
-
-        //     _context.ApiUnitConversion.Remove(apiUnitConversion);
-        //     await _context.SaveChangesAsync();
-
-        //     return NoContent();
-        // }
 
         private bool ApiUnitConversionExists(string id1)
         {

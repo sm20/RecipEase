@@ -11,28 +11,34 @@ using RecipEase.Shared.Models.Api;
 namespace RecipEase.Server.Controllers
 {
     [Route("api/[controller]")]
+    [Produces("application/json")]
+
     [ApiController]
-    public class SLController : ControllerBase
+    public class ShoppingListController : ControllerBase
     {
         private readonly RecipEaseContext _context;
 
-        public SLController(RecipEaseContext context)
+        public ShoppingListController(RecipEaseContext context)
         {
             _context = context;
         }
 
         /// <summary>
-        /// Returns the ShoppingList with the given userId.
+        /// Returns an user's shopping list
         /// </summary>
         /// <remarks>
         ///
-        /// Retrieves shopping list with the given userId in the UserId column from the
-        /// `ShoppingList` table.
-        ///
+        /// functionalities : Retrieves an user's shopping list with accordinging id.
+        /// 
+        /// database: ShoppingList, User
+        /// 
+        /// constraints: The authenticated user making this request must be the owner of the
+        /// shopping list.
+        /// 
+        /// query: select * ShoppingList with UserId = userId
+        /// 
         /// </remarks>
-        /// <param name="userId">The UserId of the ShoppingList to retrieve.</param>
-
-
+        /// <param name="userId">id of the user who have the shopping list.</param>
         [HttpGet("{userId}")]
         public async Task<ActionResult<ApiShoppingList>> GetApiShoppingList(string userId)
         {
@@ -47,23 +53,24 @@ namespace RecipEase.Server.Controllers
         }
 
         /// <summary>
-        /// Edit the ShoppingList with the given userId.
+        /// Edit an user's shopping list
         /// </summary>
         /// <remarks>
         ///
-        /// Updates the given shopping list in the database.
-        ///
-        /// The customer specified by `UserId` must be the authenticated user
-        /// making this request.
-        ///
-        /// The endpoint will perform an `update` command on the `ShoppingList` table
-        /// to update the ShoppingList, and foreign key constraints will be relied
-        /// upon to validate the `UserId`.
-        ///
+        /// functionalities : Edit an user's shopping list with accordinging id.
+        /// 
+        /// database: ShoppingList, User
+        /// 
+        /// constraints: The authenticated user making this request must be the owner of the
+        /// shopping list.
+        /// 
+        /// query: update ShoppingList Set (some values) where UserId = userId
+        /// 
         /// </remarks>
-        /// <param name="userId">The ID of the ApiClass to retrieve.</param>
+        /// <param name="userId">id of the user who have the shopping list.</param>
 
         [HttpPut("{userId}")]
+        [Consumes("application/json")]
         public async Task<IActionResult> PutApiShoppingList(string userId, ApiShoppingList apiShoppingList)
         {
             if (userId != apiShoppingList.UserId)

@@ -11,29 +11,36 @@ using RecipEase.Shared.Models.Api;
 namespace RecipEase.Server.Controllers
 {
     [Route("api/[controller]")]
+    [Produces("application/json")]
+
     [ApiController]
-    public class ApiIngrInShoppingListController : ControllerBase
+    public class IngrInShoppingListController : ControllerBase
     {
         private readonly RecipEaseContext _context;
 
-        public ApiIngrInShoppingListController(RecipEaseContext context)
+        public IngrInShoppingListController(RecipEaseContext context)
         {
             _context = context;
         }
 
         /// <summary>
-        /// Returns the item in the shopping list of a user
+        /// Returns all the items in an user's shopping list
         /// </summary>
         /// <remarks>
         ///
-        /// Retrieves ingredient in a user's shopping list with according unit.
-        /// The authenticated user making this request must be the owner of the
+        /// functionalities : Retrieves ingredient in a user's shopping list with according unit.
+        /// 
+        /// database: IngrInShoppingList, Customer
+        /// 
+        /// constraints: The authenticated user making this request must be the owner of the
         /// shopping list.
-        ///
+        /// 
+        /// query: select * IngrInShoppingList with UserId = id
+        /// 
         /// </remarks>
         /// <param name="id">id of the user who have the shopping list to converse to.</param>
 
-        [HttpGet("{id")]
+        [HttpGet("{id}")]
         public async Task<ActionResult<ApiIngrInShoppingList>> GetApiIngrInShoppingList(string id)
         {
             var apiIngrInShoppingList = await _context.ApiIngrInShoppingList.FindAsync(id);
@@ -46,21 +53,23 @@ namespace RecipEase.Server.Controllers
             return apiIngrInShoppingList;
         }
 
+
         /// <summary>
-        /// Returns the a specific ingredient in the shopping list of a user
+        /// Returns the specific item in the IngrInShoppingList
         /// </summary>
         /// <remarks>
         ///
-        /// Retrieves a specific ingredient in a user's shopping list with according unit.
-        /// The authenticated user making this request must be the owner of the
-        /// shopping list.
-        ///
-        /// </remarks>
-        /// <param name="id">id of the user who have the shopping list.</param>
-        /// <param name="uname">name of the unit of the ingredient in the shopping list</param>
-        /// <param name= "iname">name of the ingredient in shopping list.</param>
+        /// functionalities : Retrieves an item ingredient with a specific userid ,ingredient and unit.
         /// 
-        [HttpGet("{id,uname,iname}")]
+        /// database: IngrInShoppingList, Customer
+        /// 
+        /// constraints: The authenticated user making this request must be the owner of the
+        /// shopping list.
+        /// 
+        /// query: select * IngrInShoppingList with UserId = id and IngrName = iname and UnitName = uname
+        /// 
+        /// </remarks>
+        [HttpGet]
         public async Task<ActionResult<ApiIngrInShoppingList>> GetApiIngrInShoppingList(string id, string uname, string iname)
         {
             var apiIngrInShoppingList = await _context.ApiIngrInShoppingList.FindAsync(id);
@@ -74,21 +83,23 @@ namespace RecipEase.Server.Controllers
         }
 
         /// <summary>
-        /// Edit the a specific ingredient in the shopping list of a user
+        /// Edit the specific item in the IngrInShoppingList
         /// </summary>
         /// <remarks>
         ///
-        /// Edit a specific ingredient in a user's shopping list with according unit.
-        /// The authenticated user making this request must be the owner of the
+        /// functionalities : Edit an item ingredient with a specific userid ,ingredient and unit.
+        /// 
+        /// database: IngrInShoppingList, Customer
+        /// 
+        /// constraints: The authenticated user making this request must be the owner of the
         /// shopping list.
-        ///
+        /// 
+        /// query: update * IngrInShoppingList set (some instance) where UserId = id and IngrName = iname and UnitName = uname
+        /// 
         /// </remarks>
-        /// <param name="id">id of the user who have the shopping list.</param>
-        /// <param name="uname">name of the unit of the ingredient in the shopping list</param>
-        /// <param name= "iname">name of the ingredient in shopping list.</param>
-        ///
 
-        [HttpPut("{id, uname, iname}")]
+        [HttpPut]
+        [Consumes("application/json")]
         public async Task<IActionResult> PutApiIngrInShoppingList(string id, ApiIngrInShoppingList apiIngrInShoppingList)
         {
             if (id != apiIngrInShoppingList.UserId)
@@ -118,17 +129,21 @@ namespace RecipEase.Server.Controllers
         }
 
         /// <summary>
-        /// create an ingredient in a shopping list
+        ///   Create new row in IngrInShoppingList
         /// </summary>
         /// <remarks>
         ///
-        /// create a new IngrInShoppingList.
-        /// The authenticated user making this request must be the owner of the
+        /// functionalities : Insert a row with a specific userid ,ingredient and unit.
+        /// 
+        /// database: IngrInShoppingList, Customer
+        /// 
+        /// constraints: The authenticated user making this request must be the owner of the
         /// shopping list.
-        /// given names should not exists in the database
+        /// 
+        /// query: insert into IngrInShoppingList
         /// </remarks>
-
         [HttpPost]
+        [Consumes("application/json")]
         public async Task<ActionResult<ApiIngrInShoppingList>> PostApiIngrInShoppingList(ApiIngrInShoppingList apiIngrInShoppingList)
         {
             _context.ApiIngrInShoppingList.Add(apiIngrInShoppingList);
@@ -152,23 +167,24 @@ namespace RecipEase.Server.Controllers
         }
 
         /// <summary>
-        /// Delete the a specific ingredient in the shopping list of a user
+        /// Delete an ingredient in an user's shopping list
         /// </summary>
         /// <remarks>
         ///
-        /// Delete a specific ingredient in a user's shopping list with according unit.
-        /// The authenticated user making this request must be the owner of the
+        /// functionalities : Retrieves ingredient in a user's shopping list with according unit.
+        /// 
+        /// database: IngrInShoppingList, Customer
+        /// 
+        /// constraints: The authenticated user making this request must be the owner of the
         /// shopping list.
-        ///
+        /// 
+        /// query: delete from IngrInShoppingList where userId = userId, ingrName = ingrName, unitName = unitName
+        /// 
         /// </remarks>
-        /// <param name="id">id of the user who have the shopping list.</param>
-        /// <param name="uname">name of the unit of the ingredient in the shopping list</param>
-        /// <param name= "iname">name of the ingredient in shopping list.</param>
-        ///
-        [HttpDelete("{id, uname, iname}")]
-        public async Task<IActionResult> DeleteApiIngrInShoppingList(string id)
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteApiIngrInShoppingList(ApiIngrInShoppingList apiIngrInShoppingList)
         {
-            var apiIngrInShoppingList = await _context.ApiIngrInShoppingList.FindAsync(id);
             if (apiIngrInShoppingList == null)
             {
                 return NotFound();
