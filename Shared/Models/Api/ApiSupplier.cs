@@ -7,6 +7,7 @@ namespace RecipEase.Shared.Models.Api
 {
     public class ApiSupplier
     {
+        [Key]
         public string UserId { get; set; }
 
 

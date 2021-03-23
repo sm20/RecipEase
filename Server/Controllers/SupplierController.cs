@@ -70,7 +70,7 @@ namespace RecipEase.Server.Controllers
         /// the user exists.
         /// </remarks>
         ///<param name="id">The username of the Supplier to update.</param>
-        ///<param name="apiUser">The Supplier object to be updated.</param>
+        ///<param name="apiSupplier">The Supplier object to be updated.</param>
         [HttpPut("{id}")]
         [Consumes("application/json")]
         public async Task<IActionResult> PutApiSupplier(string id, ApiSupplier apiSupplier)
@@ -111,7 +111,7 @@ namespace RecipEase.Server.Controllers
         /// 
         /// An Insert  operation to insert a new Suppplier user is performed.
         /// </remarks>
-        ///<param name="apiUser">The Supplier object to be updated.</param>
+        ///<param name="apiSupplier">The Supplier object to be updated.</param>
         [HttpPost]
         [Consumes("application/json")]
         public async Task<ActionResult<ApiSupplier>> PostApiSupplier(ApiSupplier apiSupplier)

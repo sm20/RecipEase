@@ -68,6 +68,7 @@ namespace RecipEase.Server.Controllers
         /// 
         /// </remarks>
         /// <param name="userId">id of the user who have the shopping list.</param>
+        /// <param name="apiShoppingList"></param>
 
         [HttpPut("{userId}")]
         [Consumes("application/json")]

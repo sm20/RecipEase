@@ -11,6 +11,7 @@ namespace RecipEase.Shared.Models.Api
 
     public class ApiCustomer
     {
+        [Key]
         public string UserId { get; set; }
 
         public string CustomerName { get; set; }
