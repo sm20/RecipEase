@@ -97,5 +97,7 @@ namespace RecipEase.Server.Data
         }
 
         public DbSet<RecipEase.Shared.Models.Api.ApiRecipe> ApiRecipe { get; set; }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiUses> ApiUses { get; set; }
     }
 }
