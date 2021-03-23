@@ -6,9 +6,9 @@ namespace RecipEase.Shared.Models.Api
 {
     public class ApiRecipe
     {
+        [Required]
         public int Id { get; set; }
 
-        [Required]
         public string Name { get; set; }
 
         public string Steps { get; set; }
@@ -25,6 +25,9 @@ namespace RecipEase.Shared.Models.Api
 
         public double? Calories { get; set; }
 
+        [Required]
         public string AuthorId { get; set; }
+
+        public double? AverageRating { get; set; }
     }
 }

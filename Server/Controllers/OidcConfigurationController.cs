@@ -16,6 +16,14 @@ namespace RecipEase.Server.Controllers
 
         public IClientRequestParametersProvider ClientRequestParametersProvider { get; }
 
+        /// <summary>
+        /// Authentication endpoint.
+        /// </summary>
+        /// <remarks>
+        ///
+        /// This endpoint is necessary for .NET Identity to work.
+        /// 
+        /// </remarks>
         [HttpGet("_configuration/{clientId}")]
         public IActionResult GetClientRequestParameters([FromRoute]string clientId)
         {
