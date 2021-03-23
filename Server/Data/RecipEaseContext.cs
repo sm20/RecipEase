@@ -65,10 +65,19 @@ namespace RecipEase.Server.Data
             modelBuilder.Entity<RecipeCollection>()
                 .HasKey(e => new { e.UserId, e.Title });
 
+            modelBuilder.Entity<ApiRecipeCollection>()
+                .HasKey(e => new { e.UserId, e.Title });
+
             modelBuilder.Entity<RecipeRating>()
                 .HasKey(e => new { e.UserId, e.RecipeId });
 
+            modelBuilder.Entity<ApiRecipeRating>()
+                .HasKey(e => new { e.UserId, e.RecipeId });
+
             modelBuilder.Entity<RecipeInCollection>()
+                .HasKey(e => new { e.RecipeId, e.CollectionUserId, e.CollectionTitle });
+
+            modelBuilder.Entity<ApiRecipeInCollection>()
                 .HasKey(e => new { e.RecipeId, e.CollectionUserId, e.CollectionTitle });
 
             modelBuilder.Entity<RecipeInCategory>()
@@ -97,6 +106,12 @@ namespace RecipEase.Server.Data
         }
 
         public DbSet<RecipEase.Shared.Models.Api.ApiRecipe> ApiRecipe { get; set; }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiRecipeRating> ApiRecipeRating { get; set; }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiRecipeCollection> ApiRecipeCollection { get; set; }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiRecipeInCollection> ApiRecipeInCollection { get; set; }
 
         public DbSet<RecipEase.Shared.Models.Api.ApiUser> ApiUser { get; set; }
     }
