@@ -112,5 +112,7 @@ namespace RecipEase.Server.Data
         public DbSet<RecipEase.Shared.Models.Api.ApiRecipeCollection> ApiRecipeCollection { get; set; }
 
         public DbSet<RecipEase.Shared.Models.Api.ApiRecipeInCollection> ApiRecipeInCollection { get; set; }
+
+        public DbSet<RecipEase.Shared.Models.Api.ApiUser> ApiUser { get; set; }
     }
 }
