@@ -79,7 +79,7 @@ namespace RecipEase.Server.Controllers
         /// the user exists.
         /// </remarks>
         ///<param name="id">The username of the Customer to update.</param>
-        ///<param name="apiUser">The Customer object to be updated.</param>
+        ///<param name="apiCustomer">The Customer object to be updated.</param>
         [HttpPut("{id}")]
         [Consumes("application/json")]
         public async Task<IActionResult> PutApiCustomer(string id, ApiCustomer apiCustomer)
@@ -120,7 +120,7 @@ namespace RecipEase.Server.Controllers
         /// 
         /// An Insert  operation to insert a new Customer is performed.
         /// </remarks>
-        ///<param name="apiUser">The Customer object to be updated.</param>
+        ///<param name="apiCustomer">The Customer object to be updated.</param>
         [HttpPost]
         [Consumes("application/json")]
         public async Task<ActionResult<ApiCustomer>> PostApiCustomer(ApiCustomer apiCustomer)
@@ -169,7 +169,7 @@ namespace RecipEase.Server.Controllers
             _context.ApiCustomer.Remove(apiCustomer);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok();
         }
 
         private bool ApiCustomerExists(string id)
