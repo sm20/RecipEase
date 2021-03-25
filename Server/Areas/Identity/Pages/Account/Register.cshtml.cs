@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using RecipEase.Server.Data;
 using RecipEase.Shared.Models;
 
 namespace RecipEase.Server.Areas.Identity.Pages.Account
@@ -24,10 +25,12 @@ namespace RecipEase.Server.Areas.Identity.Pages.Account
         private readonly UserManager<User> _userManager;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly RecipEaseContext _context;
 
         public RegisterModel(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
+            RecipEaseContext context,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender)
         {
@@ -35,6 +38,7 @@ namespace RecipEase.Server.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _context = context;
         }
 
         [BindProperty]
@@ -43,6 +47,11 @@ namespace RecipEase.Server.Areas.Identity.Pages.Account
         public string ReturnUrl { get; set; }
 
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
+
+        public enum AccountType
+        {
+            Customer, Supplier
+        }
 
         public class InputModel
         {
@@ -61,6 +70,10 @@ namespace RecipEase.Server.Areas.Identity.Pages.Account
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
+            
+            [Required]
+            [Display(Name = "Account type")]
+            public AccountType AccountType { get; set; }
         }
 
         public async Task OnGetAsync(string returnUrl = null)
@@ -79,6 +92,21 @@ namespace RecipEase.Server.Areas.Identity.Pages.Account
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {
+                    switch (Input.AccountType)
+                    {
+                        case AccountType.Customer:
+                            var customer = new Customer {UserId = user.Id};
+                            await _context.Customer.AddAsync(customer);
+                            await _context.SaveChangesAsync();
+                            break;
+                        case AccountType.Supplier:
+                            var supplier = new Supplier {UserId = user.Id};
+                            await _context.Supplier.AddAsync(supplier);
+                            await _context.SaveChangesAsync();
+                            break;
+                        default:
+                            throw new Exception("Account type not provided.");
+                    }
                     _logger.LogInformation("User created a new account with password.");
 
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
