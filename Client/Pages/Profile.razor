@@ -1,29 +1,100 @@
-﻿@page "/profile"
+﻿@page "/Profile"
+@page "/Profile/{Section}"
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize]
 
 <h1>Profile</h1>
 
-<form class="w-50">
-  <div class="form-group">
-    <label for="name">Name</label>
-    <input type="text" class="form-control" id="name" placeholder="Your name" value="John Brown">
-  </div>
-  <div class="form-group">
-    <label for="age">Age</label>
-    <input type="number" class="form-control" id="age" placeholder="Your age" value="32">
-  </div>
-  <div class="form-group">
-    <label for="weight">Weight</label>
-    <input type="number" class="form-control" id="weight" placeholder="Your weight" value="160">
-  </div>
-  <div class="form-group">
-      <label for="meal">Favourite meal</label>
-      <select class="form-control" id="meal">
-        <option>Breakfast</option>
-        <option>Lunch</option>
-        <option>Dinner</option>
-      </select>
-    </div>
-  <button type="submit" class="btn btn-primary">Update Profile</button>
-</form>
+@{
+    var section = Section?.ToLower() ?? "account";
+}
+
+<ul class="nav nav-tabs mb-4">
+    @foreach (var (sectionKey, sectionValues) in SectionTypes)
+    {
+        <li class="nav-item">
+            <a class="nav-link @(section == sectionKey ? "active" : "") " href="/Profile/@sectionKey">@sectionValues.Item1</a>
+        </li>
+    }
+</ul>
+
+@switch (CurrentAccountType)
+{
+    case AccountType.Customer:
+        switch (section)
+        {
+            case "account":
+                <CustomerAccountInfo></CustomerAccountInfo>
+                break;
+            case "collections":
+                <Collections></Collections>
+                break;
+            case "shoppinglist":
+                <ShoppingList></ShoppingList>
+                break;
+            case "recipes":
+                <CustomerRecipes></CustomerRecipes>
+                break;
+            default:
+                <CustomerAccountInfo></CustomerAccountInfo>
+                break;
+        }
+        break;
+    case AccountType.Supplier:
+        switch (section)
+        {
+            case "account":
+                <SupplierAccountInfo></SupplierAccountInfo>
+                break;
+            case "ingredients":
+                <h2>Supplied Ingredients</h2>
+                <button class="btn btn-success">+ Add Ingredient</button>
+                <IngredientList></IngredientList>
+                break;
+            default:
+                <SupplierAccountInfo></SupplierAccountInfo>
+                break;
+        }
+        break;
+}
+
+
+
+@code
+{
+    public enum AccountType
+    {
+        Customer, Supplier
+    }
+    
+    public AccountType CurrentAccountType = AccountType.Customer;
+
+    public Dictionary<string, Tuple<string>> SectionTypes
+    {
+        get
+        {
+            switch (CurrentAccountType)
+            {
+                case AccountType.Customer:
+                    return new Dictionary<string, Tuple<string>>()
+                    {
+                        {"account", new Tuple<string>("Account Info")},
+                        {"collections", new Tuple<string>("Collections")},
+                        {"shoppinglist", new Tuple<string>("Shopping List")},
+                        {"recipes", new Tuple<string>("Your Recipes")},
+                    };
+                case AccountType.Supplier:
+                    return new Dictionary<string, Tuple<string>>()
+                    {
+                        {"account", new Tuple<string>("Account Info")},
+                        {"ingredients", new Tuple<string>("Ingredients")},
+                    };
+                default:
+                    return new Dictionary<string, Tuple<string>>();
+            }
+        }
+    }
+
+    [Parameter]
+    public string Section { get; set; }
+}
