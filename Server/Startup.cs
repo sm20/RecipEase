@@ -36,7 +36,7 @@ namespace RecipEase.Server
 
             services.AddDatabaseDeveloperPageExceptionFilter();
 
-            services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true)
+            services.AddDefaultIdentity<User>()
                 .AddEntityFrameworkStores<RecipEaseContext>();
 
             services.AddIdentityServer()

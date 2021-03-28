@@ -1,0 +1,51 @@
+﻿@page "/Recipe/{recipeId}"
+
+
+<h1>Recipe Title</h1>
+
+<h2>Directions</h2>
+
+<p>
+    This is a recipe which describes how to make some food, here's what you need to do to make the food that this recipe describes:
+</p>
+
+<ol>
+    <li>The first step in the recipe</li>
+    <li>The second step in the recipe</li>
+    <li>The third step in the recipe</li>
+</ol>
+
+<h2>Ingredients</h2>
+<ul class="list-group list-group-flush mb-4">
+    @for (var i = 0; i < 10; i++)
+    {
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            Ingredient #@i
+            <span class="text-black-50">@i @(i % 2 == 0 ? "cups" : "g")</span>
+            <span class="badge badge-primary badge-pill">@(i % 2 == 0 ? "Rare" : "Common")</span>
+            <button class="btn btn-outline-success">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-cart-plus-fill" viewBox="0 0 16 16">
+                    <path d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1H.5zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 5.5V7h1.5a.5.5 0 0 1 0 1H9v1.5a.5.5 0 0 1-1 0V8H6.5a.5.5 0 0 1 0-1H8V5.5a.5.5 0 0 1 1 0z"/>
+                </svg>
+            </button>
+        </li>
+    }
+</ul>
+
+<h2>Nutrition</h2>
+
+<p>
+    <b>Calories:</b> 100<br/>
+    <b>Carbohydrates:</b> 100<br/>
+    <b>Protein:</b> 100<br/>
+    <b>Sodium:</b> 100<br/>
+    <b>Fat:</b> 100<br/>
+    <b>Cholesterol:</b> 100<br/>
+</p>
+
+@code {
+
+    [Parameter]
+    public string RecipeId { get; set; }
+
+}
