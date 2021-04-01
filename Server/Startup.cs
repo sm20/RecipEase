@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
@@ -13,6 +14,8 @@ using Microsoft.EntityFrameworkCore;
 using RecipEase.Server.Data;
 using System.Reflection;
 using System.IO;
+using Microsoft.AspNetCore.Identity;
+using RecipEase.Shared;
 using RecipEase.Shared.Models;
 
 namespace RecipEase.Server
@@ -37,10 +40,21 @@ namespace RecipEase.Server
             services.AddDatabaseDeveloperPageExceptionFilter();
 
             services.AddDefaultIdentity<User>()
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<RecipEaseContext>();
 
             services.AddIdentityServer()
-                .AddApiAuthorization<User, RecipEaseContext>();
+                .AddApiAuthorization<User, RecipEaseContext>(
+                    options =>
+                    {
+                        // Necessary for roles to be accessible in Blazor
+                        // From here: https://stackoverflow.com/a/64798061/14703577
+                        options.IdentityResources["openid"].UserClaims.Add("role");
+                        options.ApiResources.Single().UserClaims.Add("role");
+                    });
+            
+            // Necessary for roles to be accessible in Blazor
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Remove("role");
 
             services.AddAuthentication()
                 .AddIdentityServerJwt();
@@ -59,15 +73,18 @@ namespace RecipEase.Server
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            using (var scope = app.ApplicationServices.CreateScope())
+            {
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                CreateRoles(roleManager).Wait();
+            }
+
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
 
             // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
             // specifying the Swagger JSON endpoint.
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "RecipEase API");
-            });
+            app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "RecipEase API"); });
 
             if (env.IsDevelopment())
             {
@@ -98,6 +115,17 @@ namespace RecipEase.Server
                 endpoints.MapControllers();
                 endpoints.MapFallbackToFile("index.html");
             });
+        }
+
+        private static async Task CreateRoles(RoleManager<IdentityRole> roleManager)
+        {
+            foreach (var role in Enum.GetNames(typeof(Role)))
+            {
+                if (!await roleManager.RoleExistsAsync(role))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(role));
+                }
+            }
         }
     }
 }
