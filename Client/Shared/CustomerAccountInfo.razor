@@ -1,32 +1,56 @@
-﻿<h2>Account Info</h2>
+﻿@using RecipEase.Shared.Models
+@using RecipEase.Shared.Models.Api
+@using Meal = RecipEase.Shared.Models.Api.Meal
+@inject HttpClient Http
 
-<form class="w-50">
+<h2>Account Info</h2>
+
+<EditForm
+    Model="@_customer"
+    OnValidSubmit="@HandleValidSubmit">
+
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+
     <div class="form-group">
         <label for="name">Name</label>
-        <input type="text" class="form-control" id="name" placeholder="Your name" value="John Brown">
+        <InputText
+            id="name" class="form-control"
+            @bind-Value="_customer.CustomerName"/>
     </div>
     <div class="form-group">
         <label for="age">Age</label>
-        <input type="number" class="form-control" id="age" placeholder="Your age" value="32">
+        <InputNumber
+            id="age" class="form-control"
+            @bind-Value="_customer.Age"/>
     </div>
     <div class="form-group">
         <label for="weight">Weight</label>
-        <input type="number" class="form-control" id="weight" placeholder="Your weight" value="160">
+        <InputNumber
+            id="weight" class="form-control"
+            @bind-Value="_customer.Weight"/>
     </div>
     <div class="form-group">
         <label for="meal">Favourite meal</label>
-        <select class="form-control" id="meal">
-            <option>Breakfast</option>
-            <option>Lunch</option>
-            <option>Dinner</option>
-        </select>
+        <InputSelect id="meal" class="form-control" @bind-Value="_customer.FavMeal">
+            @foreach (var meal in Enum.GetValues(typeof(Meal)))
+            {
+                <option value="@meal">@meal</option>
+            }
+        </InputSelect>
     </div>
     <div class="form-group">
         <button type="submit" class="btn btn-primary">Update Profile</button>
     </div>
     <p>Want to change your email or password, or delete your account? <a href="/Identity/Account/Manage">Click here</a>.</p>
-</form>
+
+</EditForm>
 
 @code {
-    
+    private ApiCustomer _customer = new() {CustomerName = "John", Age = 32, Weight = 160, FavMeal = Meal.Breakfast};
+
+    private async Task HandleValidSubmit()
+    {
+    }
+
 }
