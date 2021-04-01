@@ -5,9 +5,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RecipEase.Shared.Models.Api
 {
-    public enum Meal {
-        Breakfast, Lunch, Dinner
-    }
 
     public class ApiCustomer
     {
