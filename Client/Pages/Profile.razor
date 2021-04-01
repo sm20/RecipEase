@@ -1,12 +1,15 @@
 ﻿@page "/Profile"
 @page "/Profile/{Section}"
 @using Microsoft.AspNetCore.Authorization
+@using RecipEase.Shared
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @attribute [Authorize]
 
 <h1>Profile</h1>
 
 @{
-    var section = Section?.ToLower() ?? "account";
+    var section = Section?.ToLower() ?? AccountSection;
 }
 
 <ul class="nav nav-tabs mb-4">
@@ -18,76 +21,75 @@
     }
 </ul>
 
-@switch (CurrentAccountType)
-{
-    case AccountType.Customer:
-        switch (section)
-        {
-            case "account":
-                <CustomerAccountInfo></CustomerAccountInfo>
-                break;
-            case "collections":
-                <Collections></Collections>
-                break;
-            case "shoppinglist":
-                <ShoppingList></ShoppingList>
-                break;
-            case "recipes":
-                <CustomerRecipes></CustomerRecipes>
-                break;
-            default:
-                <CustomerAccountInfo></CustomerAccountInfo>
-                break;
-        }
-        break;
-    case AccountType.Supplier:
-        switch (section)
-        {
-            case "account":
-                <SupplierAccountInfo></SupplierAccountInfo>
-                break;
-            case "ingredients":
-                <h2>Supplied Ingredients</h2>
-                <button class="btn btn-success">+ Add Ingredient</button>
-                <IngredientList></IngredientList>
-                break;
-            default:
-                <SupplierAccountInfo></SupplierAccountInfo>
-                break;
-        }
-        break;
-}
-
-
+<AuthorizeView Roles="@Role.Customer.ToString()">
+    @switch (section)
+    {
+        case AccountSection:
+            <CustomerAccountInfo></CustomerAccountInfo>
+            break;
+        case CollectionsSection:
+            <Collections></Collections>
+            break;
+        case ShoppingListSection:
+            <ShoppingList></ShoppingList>
+            break;
+        case RecipesSection:
+            <CustomerRecipes></CustomerRecipes>
+            break;
+        default:
+            <CustomerAccountInfo></CustomerAccountInfo>
+            break;
+    }
+</AuthorizeView>
+<AuthorizeView Roles="@Role.Supplier.ToString()">
+    @switch (section)
+    {
+        case AccountSection:
+            <SupplierAccountInfo></SupplierAccountInfo>
+            break;
+        case IngredientsSection:
+            <h2>Supplied Ingredients</h2>
+            <button class="btn btn-success">+ Add Ingredient</button>
+            <IngredientList></IngredientList>
+            break;
+        default:
+            <SupplierAccountInfo></SupplierAccountInfo>
+            break;
+    }
+</AuthorizeView>
 
 @code
 {
-    public enum AccountType
-    {
-        Customer, Supplier
-    }
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
     
-    public AccountType CurrentAccountType = AccountType.Customer;
+    private Role? _currentAccountType;
 
-    public Dictionary<string, Tuple<string>> SectionTypes
+    private const string AccountSection = "account";
+    private const string IngredientsSection = "ingredients";
+    private const string CollectionsSection = "collections";
+    private const string ShoppingListSection = "shoppinglist";
+    private const string RecipesSection = "recipes";
+    
+    private Dictionary<string, Tuple<string>> SectionTypes
     {
         get
         {
-            switch (CurrentAccountType)
+            switch (_currentAccountType)
             {
-                case AccountType.Customer:
+                case Role.Customer:
                     return new Dictionary<string, Tuple<string>>()
                     {
-                        {"account", new Tuple<string>("Account Info")},
-                        {"collections", new Tuple<string>("Collections")},
-                        {"shoppinglist", new Tuple<string>("Shopping List")},
-                        {"recipes", new Tuple<string>("Your Recipes")},
+                        {AccountSection, new Tuple<string>("Account Info")},
+                        {CollectionsSection, new Tuple<string>("Collections")},
+                        {ShoppingListSection, new Tuple<string>("Shopping List")},
+                        {RecipesSection, new Tuple<string>("Your Recipes")},
                     };
-                case AccountType.Supplier:
+                case Role.Supplier:
                     return new Dictionary<string, Tuple<string>>()
                     {
-                        {"account", new Tuple<string>("Account Info")},
-                        {"ingredients", new Tuple<string>("Ingredients")},
+                        {AccountSection, new Tuple<string>("Account Info")},
+                        {IngredientsSection, new Tuple<string>("Ingredients")},
                     };
                 default:
                     return new Dictionary<string, Tuple<string>>();
@@ -97,4 +99,30 @@
 
     [Parameter]
     public string Section { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
+        if (user.Identity != null && user.Identity.IsAuthenticated)
+        {
+            SetCurrentAccountType(user);
+        }
+    }
+
+    private void SetCurrentAccountType(ClaimsPrincipal user)
+    {
+        if (user.IsInRole(Role.Customer.ToString()))
+        {
+            _currentAccountType = Role.Customer;
+        }
+        else if (user.IsInRole(Role.Supplier.ToString()))
+        {
+            _currentAccountType = Role.Supplier;
+        }
+        else
+        {
+            _currentAccountType = null;
+        }
+    }
 }
