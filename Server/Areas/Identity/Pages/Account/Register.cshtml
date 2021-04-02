@@ -1,4 +1,5 @@
 @page
+@using RecipEase.Server.Data
 @model RegisterModel
 @{
     ViewData["Title"] = "Register";
@@ -14,7 +15,7 @@
             <div asp-validation-summary="All" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="Input.AccountType"></label>
-                <select asp-for="Input.AccountType" asp-items="Html.GetEnumSelectList<RegisterModel.AccountType>()" class="form-control">
+                <select asp-for="Input.AccountType" asp-items="Html.GetEnumSelectList<Users.AccountType>()" class="form-control">
                     <option value="">Choose your account type</option>
                 </select>
                 <span asp-validation-for="Input.AccountType" class="text-danger"></span>

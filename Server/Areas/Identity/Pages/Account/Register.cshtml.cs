@@ -14,8 +14,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using RecipEase.Server.Data;
-using RecipEase.Shared;
 using RecipEase.Shared.Models;
+using static RecipEase.Server.Data.Users;
 
 namespace RecipEase.Server.Areas.Identity.Pages.Account
 {
@@ -48,11 +48,6 @@ namespace RecipEase.Server.Areas.Identity.Pages.Account
         public string ReturnUrl { get; set; }
 
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
-
-        public enum AccountType
-        {
-            Customer, Supplier
-        }
 
         public class InputModel
         {
@@ -89,27 +84,9 @@ namespace RecipEase.Server.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
-                var user = new User { UserName = Input.Email, Email = Input.Email };
-                var result = await _userManager.CreateAsync(user, Input.Password);
+                var (user, result) = await CreateUser(_userManager, _context, Input.AccountType, Input.Email, Input.Password);
                 if (result.Succeeded)
                 {
-                    switch (Input.AccountType)
-                    {
-                        case AccountType.Customer:
-                            var customer = new Customer {UserId = user.Id};
-                            await _userManager.AddToRoleAsync(user, Role.Customer.ToString());
-                            await _context.Customer.AddAsync(customer);
-                            await _context.SaveChangesAsync();
-                            break;
-                        case AccountType.Supplier:
-                            var supplier = new Supplier {UserId = user.Id};
-                            await _userManager.AddToRoleAsync(user, Role.Supplier.ToString());
-                            await _context.Supplier.AddAsync(supplier);
-                            await _context.SaveChangesAsync();
-                            break;
-                        default:
-                            throw new Exception("Account type not provided.");
-                    }
                     _logger.LogInformation("User created a new account with password.");
 
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
