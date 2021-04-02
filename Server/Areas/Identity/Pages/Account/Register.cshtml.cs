@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using RecipEase.Server.Data;
+using RecipEase.Shared;
 using RecipEase.Shared.Models;
 
 namespace RecipEase.Server.Areas.Identity.Pages.Account
@@ -96,11 +97,13 @@ namespace RecipEase.Server.Areas.Identity.Pages.Account
                     {
                         case AccountType.Customer:
                             var customer = new Customer {UserId = user.Id};
+                            await _userManager.AddToRoleAsync(user, Role.Customer.ToString());
                             await _context.Customer.AddAsync(customer);
                             await _context.SaveChangesAsync();
                             break;
                         case AccountType.Supplier:
                             var supplier = new Supplier {UserId = user.Id};
+                            await _userManager.AddToRoleAsync(user, Role.Supplier.ToString());
                             await _context.Supplier.AddAsync(supplier);
                             await _context.SaveChangesAsync();
                             break;

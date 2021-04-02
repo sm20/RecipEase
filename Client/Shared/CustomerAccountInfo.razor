@@ -1,32 +1,114 @@
-﻿<h2>Account Info</h2>
+﻿@using RecipEase.Shared.Models
+@using RecipEase.Shared.Models.Api
+@using Meal = RecipEase.Shared.Models.Meal
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Net
+@inject HttpClient Http
 
-<form class="w-50">
-    <div class="form-group">
-        <label for="name">Name</label>
-        <input type="text" class="form-control" id="name" placeholder="Your name" value="John Brown">
-    </div>
-    <div class="form-group">
-        <label for="age">Age</label>
-        <input type="number" class="form-control" id="age" placeholder="Your age" value="32">
-    </div>
-    <div class="form-group">
-        <label for="weight">Weight</label>
-        <input type="number" class="form-control" id="weight" placeholder="Your weight" value="160">
-    </div>
-    <div class="form-group">
-        <label for="meal">Favourite meal</label>
-        <select class="form-control" id="meal">
-            <option>Breakfast</option>
-            <option>Lunch</option>
-            <option>Dinner</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <button type="submit" class="btn btn-primary">Update Profile</button>
-    </div>
-    <p>Want to change your email or password, or delete your account? <a href="/Identity/Account/Manage">Click here</a>.</p>
-</form>
+<h2>Account Info</h2>
+
+@if (_error != null)
+{
+    <div class="container alert-danger">@_error</div>
+}
+@if (_success != null)
+{
+    <div class="container alert-success">@_success</div>
+}
+@if (_customer != null)
+{
+    <EditForm
+        Model="@_customer"
+        OnValidSubmit="@HandleValidSubmit">
+
+        <DataAnnotationsValidator/>
+        <ValidationSummary/>
+
+        <div class="form-group">
+            <label for="name">Name</label>
+            <InputText
+                id="name" class="form-control"
+                @bind-Value="_customer.CustomerName"/>
+        </div>
+        <div class="form-group">
+            <label for="age">Age</label>
+            <InputNumber
+                id="age" class="form-control"
+                @bind-Value="_customer.Age"/>
+        </div>
+        <div class="form-group">
+            <label for="weight">Weight</label>
+            <InputNumber
+                id="weight" class="form-control"
+                @bind-Value="_customer.Weight"/>
+        </div>
+        <div class="form-group">
+            <label for="meal">Favourite meal</label>
+            <InputSelect id="meal" class="form-control" @bind-Value="_customer.FavMeal">
+                @foreach (var meal in Enum.GetValues(typeof(Meal)))
+                {
+                    <option value="@meal">@meal</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Update Profile</button>
+        </div>
+        <p>Want to change your email or password, or delete your account? <a href="/Identity/Account/Manage">Click here</a>.</p>
+
+    </EditForm>
+}
 
 @code {
-    
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    private ApiCustomer _customer = null;
+    private string _error = null;
+    private string _success = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthenticationStateTask;
+            var user = authState.User;
+            if (user.Identity != null && user.Identity.IsAuthenticated)
+            {
+                var uriBuilder = new UriBuilder(Http.BaseAddress)
+                {
+                    Path = "api/Customer",
+                    Query = $"username={user.Identity.Name}"
+                };
+                
+                _customer = await Http.GetFromJsonAsync<ApiCustomer>(uriBuilder.ToString());
+            }
+        }
+        catch (AccessTokenNotAvailableException e)
+        {
+            e.Redirect();
+        }
+        catch (HttpRequestException e)
+        {
+            _error = "An error occurred loading your account.";
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (!string.IsNullOrEmpty(_customer?.UserId))
+        {
+            var response = await Http.PutAsJsonAsync($"api/Customer/{_customer.UserId}", _customer);
+            if (!response.IsSuccessStatusCode)
+            {
+                _error = "An error occurred updating your account";
+            }
+            else
+            {
+                _success = "Account updated!";
+            }
+        }
+    }
+
 }

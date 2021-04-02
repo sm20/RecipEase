@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using RecipEase.Server.Data;
 using RecipEase.Shared.Models.Api;
 using Microsoft.AspNetCore.Authorization;
+using RecipEase.Shared.Models;
 
 namespace RecipEase.Server.Controllers
 {
@@ -19,51 +21,49 @@ namespace RecipEase.Server.Controllers
     public class CustomerController : ControllerBase
     {
         private readonly RecipEaseContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CustomerController(RecipEaseContext context)
+        public CustomerController(RecipEaseContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
-        /// Returns all Customer credential information.
+        /// Returns the Customer with the given username.
         /// </summary>
         /// <remarks>
         ///
-        /// Retrieves all items and all attributes from the 'customer'
-        /// table.
-        /// A 'select*' query with a 'where' clause to find the list of usernames
-        ///and their associated attributes.
-        /// </remarks>
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ApiCustomer>>> GetApiCustomer()
-        {
-            return await _context.ApiCustomer.ToListAsync();
-        }
-
-        /// <summary>
-        /// Returns the Customer with the given username id.
-        /// </summary>
-        /// <remarks>
-        ///
-        /// Retrieves the object with the given username id value, in the username column, from the
+        /// Retrieves the object with the given username value, in the username column, from the
         /// `Customer` table, if it exists.
         ///
-        /// A 'select*' query with a 'where' clause to find the username id
+        /// A 'select*' query with a 'where' clause to find the username
         /// and its associated attributes.
         /// </remarks>
-        /// <param name="id">The Username ID of the Customer to retrieve.</param>
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ApiCustomer>> GetApiCustomer(string id)
+        /// <param name="username">The Username of the Customer to retrieve.</param>
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
+        public async Task<ActionResult<ApiCustomer>> GetCustomer(string username)
         {
-            var apiCustomer = await _context.ApiCustomer.FindAsync(id);
+            var query =
+                from user in
+                    _context.User join c in _context.Customer on user.Id equals c.UserId
+                where user.UserName == username select c;
+            
+            var customer = await query.FirstOrDefaultAsync();
 
-            if (apiCustomer == null)
+            if (customer == null)
             {
                 return NotFound();
             }
 
-            return apiCustomer;
+            return new ApiCustomer()
+            {
+                Age = customer.Age, Weight = customer.Weight, CustomerName = customer.CustomerName,
+                FavMeal = customer.FavMeal, UserId = customer.UserId
+            };
         }
 
         /// <summary>
@@ -82,14 +82,29 @@ namespace RecipEase.Server.Controllers
         ///<param name="apiCustomer">The Customer object to be updated.</param>
         [HttpPut("{id}")]
         [Consumes("application/json")]
-        public async Task<IActionResult> PutApiCustomer(string id, ApiCustomer apiCustomer)
+        public async Task<IActionResult> PutCustomer(string id, ApiCustomer apiCustomer)
         {
+            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (id != currentUserId)
+            {
+                return Unauthorized();
+            }
+            
             if (id != apiCustomer.UserId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(apiCustomer).State = EntityState.Modified;
+            var customer = new Customer()
+            {
+                Age = apiCustomer.Age,
+                Weight = apiCustomer.Weight,
+                FavMeal = apiCustomer.FavMeal,
+                UserId = apiCustomer.UserId,
+                CustomerName = apiCustomer.CustomerName
+            };
+
+            _context.Entry(customer).State = EntityState.Modified;
 
             try
             {
@@ -97,14 +112,12 @@ namespace RecipEase.Server.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ApiCustomerExists(id))
+                if (!CustomerExists(id))
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
             return NoContent();
@@ -132,7 +145,7 @@ namespace RecipEase.Server.Controllers
             }
             catch (DbUpdateException)
             {
-                if (ApiCustomerExists(apiCustomer.UserId))
+                if (CustomerExists(apiCustomer.UserId))
                 {
                     return Conflict();
                 }
@@ -142,7 +155,7 @@ namespace RecipEase.Server.Controllers
                 }
             }
 
-            return CreatedAtAction("GetApiCustomer", new { id = apiCustomer.UserId }, apiCustomer);
+            return CreatedAtAction("GetCustomer", new {id = apiCustomer.UserId}, apiCustomer);
         }
 
         /// <summary>
@@ -172,9 +185,9 @@ namespace RecipEase.Server.Controllers
             return Ok();
         }
 
-        private bool ApiCustomerExists(string id)
+        private bool CustomerExists(string id)
         {
-            return _context.ApiCustomer.Any(e => e.UserId == id);
+            return _context.Customer.Any(e => e.UserId == id);
         }
     }
 }
