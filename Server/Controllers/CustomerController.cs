@@ -78,7 +78,7 @@ namespace RecipEase.Server.Controllers
         /// An Update operation is used to update the Customer in the database if
         /// the user exists.
         /// </remarks>
-        ///<param name="id">The username of the Customer to update.</param>
+        ///<param name="id">The user id of the Customer to update.</param>
         ///<param name="apiCustomer">The Customer object to be updated.</param>
         [HttpPut("{id}")]
         [Consumes("application/json")]

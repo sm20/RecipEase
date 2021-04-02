@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using RecipEase.Server.Data;
 using RecipEase.Shared.Models.Api;
 using Microsoft.AspNetCore.Authorization;
+using RecipEase.Shared.Models;
 
 namespace RecipEase.Server.Controllers
 {
@@ -19,42 +21,53 @@ namespace RecipEase.Server.Controllers
     public class SupplierController : ControllerBase
     {
         private readonly RecipEaseContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public SupplierController(RecipEaseContext context)
+        public SupplierController(RecipEaseContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
-        }
-
-
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ApiSupplier>>> GetApiSupplier()
-        {
-            return await _context.ApiSupplier.ToListAsync();
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
-        /// Returns the Supplier with the given username id.
+        /// Returns the Supplier with the given username.
         /// </summary>
         /// <remarks>
         ///
-        /// Retrieves the object with the given username id value, in the username column, from the
+        /// Retrieves the object with the given username value, in the username column, from the
         /// `Supplier` table, if it exists.
         ///
-        /// A 'select*' query with a 'where' clause to find the username id
+        /// A 'select*' query with a 'where' clause to find the username
         /// and its associated attributes.
         /// </remarks>
-        /// <param name="id">The Username ID of the Supplier to retrieve.</param>
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ApiSupplier>> GetApiSupplier(string id)
+        /// <param name="username">The username of the Supplier to retrieve.</param>
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
+        public async Task<ActionResult<ApiSupplier>> GetSupplier(string username)
         {
-            var apiSupplier = await _context.ApiSupplier.FindAsync(id);
+            var query =
+                from user in
+                    _context.User join s in _context.Supplier on user.Id equals s.UserId
+                where user.UserName == username select s;
+            
+            var supplier = await query.FirstOrDefaultAsync();
 
-            if (apiSupplier == null)
+            if (supplier == null)
             {
                 return NotFound();
             }
 
-            return apiSupplier;
+            return new ApiSupplier()
+            {
+                UserId = supplier.UserId,
+                Email = supplier.Email,
+                Website = supplier.Website,
+                PhoneNo = supplier.PhoneNo,
+                SupplierName = supplier.SupplierName,
+                StoreVisitCount = supplier.StoreVisitCount
+            };
         }
 
         /// <summary>
@@ -69,18 +82,34 @@ namespace RecipEase.Server.Controllers
         /// An Update operation is used to update the Supplier in the database if
         /// the user exists.
         /// </remarks>
-        ///<param name="id">The username of the Supplier to update.</param>
+        ///<param name="id">The user id of the Supplier to update.</param>
         ///<param name="apiSupplier">The Supplier object to be updated.</param>
         [HttpPut("{id}")]
         [Consumes("application/json")]
-        public async Task<IActionResult> PutApiSupplier(string id, ApiSupplier apiSupplier)
+        public async Task<IActionResult> PutSupplier(string id, ApiSupplier apiSupplier)
         {
+            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (id != currentUserId)
+            {
+                return Unauthorized();
+            }
+
             if (id != apiSupplier.UserId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(apiSupplier).State = EntityState.Modified;
+            var supplier = new Supplier()
+            {
+                Email = apiSupplier.Email,
+                Website = apiSupplier.Website,
+                PhoneNo = apiSupplier.PhoneNo,
+                SupplierName = apiSupplier.SupplierName,
+                UserId = apiSupplier.UserId,
+                StoreVisitCount = apiSupplier.StoreVisitCount
+            };
+
+            _context.Entry(supplier).State = EntityState.Modified;
 
             try
             {
@@ -88,7 +117,7 @@ namespace RecipEase.Server.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ApiSupplierExists(id))
+                if (!SupplierExists(id))
                 {
                     return NotFound();
                 }
@@ -123,7 +152,7 @@ namespace RecipEase.Server.Controllers
             }
             catch (DbUpdateException)
             {
-                if (ApiSupplierExists(apiSupplier.UserId))
+                if (SupplierExists(apiSupplier.UserId))
                 {
                     return Conflict();
                 }
@@ -133,7 +162,7 @@ namespace RecipEase.Server.Controllers
                 }
             }
 
-            return CreatedAtAction("GetApiSupplier", new { id = apiSupplier.UserId }, apiSupplier);
+            return CreatedAtAction("GetSupplier", new { id = apiSupplier.UserId }, apiSupplier);
         }
 
         /// <summary>
@@ -163,9 +192,9 @@ namespace RecipEase.Server.Controllers
             return NoContent();
         }
 
-        private bool ApiSupplierExists(string id)
+        private bool SupplierExists(string id)
         {
-            return _context.ApiSupplier.Any(e => e.UserId == id);
+            return _context.Supplier.Any(e => e.UserId == id);
         }
     }
 }

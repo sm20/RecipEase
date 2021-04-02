@@ -17,10 +17,8 @@ namespace RecipEase.Shared.Models.Api
         public string PhoneNo { get; set; }
 
 
-        [Required]
         public string Website { get; set; }
 
-        [Required]
         public string SupplierName { get; set; }
 
         [Range(0, Double.PositiveInfinity)]
