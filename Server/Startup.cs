@@ -43,19 +43,21 @@ namespace RecipEase.Server
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<RecipEaseContext>();
 
+            // Add additional information to each user, to be accessible by their ClaimsPrincipal when they log in
+            // See: https://korzh.com/blog/aspnet-identity-store-user-data-in-claims
+            services.AddScoped<IUserClaimsPrincipalFactory<User>, UserClaimsPrincipalFactory>();
+            
             services.AddIdentityServer()
                 .AddApiAuthorization<User, RecipEaseContext>(
                     options =>
                     {
                         // Necessary for roles to be accessible in Blazor
                         // From here: https://stackoverflow.com/a/64798061/14703577
-                        options.IdentityResources["openid"].UserClaims.Add("role");
-                        options.ApiResources.Single().UserClaims.Add("role");
+                        var userClaims = options.IdentityResources["openid"].UserClaims;
+                        userClaims.Add("role");
+                        userClaims.Add(CustomClaimsTypes.UserId);
                     });
             
-            // Necessary for roles to be accessible in Blazor
-            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Remove("role");
-
             services.AddAuthentication()
                 .AddIdentityServerJwt();
 
