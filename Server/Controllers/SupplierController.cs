@@ -40,19 +40,14 @@ namespace RecipEase.Server.Controllers
         /// A 'select*' query with a 'where' clause to find the username
         /// and its associated attributes.
         /// </remarks>
-        /// <param name="username">The username of the Supplier to retrieve.</param>
+        /// <param name="userId">The username of the Supplier to retrieve.</param>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesDefaultResponseType]
-        public async Task<ActionResult<ApiSupplier>> GetSupplier(string username)
+        public async Task<ActionResult<ApiSupplier>> GetSupplier(string userId)
         {
-            var query =
-                from user in
-                    _context.User join s in _context.Supplier on user.Id equals s.UserId
-                where user.UserName == username select s;
-            
-            var supplier = await query.FirstOrDefaultAsync();
+            var supplier = await _context.Supplier.FindAsync(userId);
 
             if (supplier == null)
             {

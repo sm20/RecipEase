@@ -2,6 +2,7 @@
 @using RecipEase.Shared.Models.Api
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using System.Net
+@using RecipEase.Client.Shared.Util
 @inject HttpClient Http
 
 <h2>Account Info</h2>
@@ -72,14 +73,13 @@
     {
         try
         {
-            var authState = await AuthenticationStateTask;
-            var user = authState.User;
-            if (user.Identity != null && user.Identity.IsAuthenticated)
+            var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
+            if (userId != null)
             {
                 var uriBuilder = new UriBuilder(Http.BaseAddress)
                 {
                     Path = "api/Supplier",
-                    Query = $"username={user.Identity.Name}"
+                    Query = $"userId={userId}"
                 };
 
                 _supplier = await Http.GetFromJsonAsync<ApiSupplier>(uriBuilder.ToString());
