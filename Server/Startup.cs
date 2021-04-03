@@ -59,6 +59,16 @@ namespace RecipEase.Server
             services.AddAuthentication()
                 .AddIdentityServerJwt();
 
+            services.Configure<IdentityOptions>(options =>
+            {
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequiredLength = 1;
+                options.Password.RequiredUniqueChars = 1;
+            });
+
             services.AddControllersWithViews();
             services.AddRazorPages();
             services.AddSwaggerGen(c =>
@@ -77,6 +87,11 @@ namespace RecipEase.Server
             {
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
                 CreateRoles(roleManager).Wait();
+                
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+                var context = scope.ServiceProvider.GetRequiredService<RecipEaseContext>();
+                Users.CreateUser(userManager, context, Users.AccountType.Customer, "c@c", "c").Wait();
+                Users.CreateUser(userManager, context, Users.AccountType.Supplier, "s@s", "s").Wait();
             }
 
             // Enable middleware to serve generated Swagger as a JSON endpoint.
