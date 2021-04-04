@@ -1,28 +1,114 @@
-﻿<h2>Account Info</h2>
+﻿@using RecipEase.Shared.Models
+@using RecipEase.Shared.Models.Api
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Net
+@using RecipEase.Client.Shared.Util
+@inject HttpClient Http
 
-<form class="w-50">
-    <div class="form-group">
-        <label for="name">Business Name</label>
-        <input type="text" class="form-control" id="name" placeholder="Your business name" value="A Store">
-    </div>
-    <div class="form-group">
-        <label for="email">Contact Email</label>
-        <input type="email" class="form-control" id="email" placeholder="Your contact email" value="astore@@astore.com">
-    </div>
-    <div class="form-group">
-        <label for="phone">Contact Phone</label>
-        <input type="tel" class="form-control" id="phone" placeholder="Your contact phone" value="444-444-4444">
-    </div>
-    <div class="form-group">
-        <label for="website">Your website</label>
-        <input type="url" class="form-control" id="website" placeholder="Your website" value="https://astore.com">
-    </div>
-    <div class="form-group">
-        <button type="submit" class="btn btn-primary">Update Profile</button>
-    </div>
-    <p>Want to change your account email or password, or delete your account? <a href="/Identity/Account/Manage">Click here</a>.</p>
-</form>
+<h2>Account Info</h2>
+
+@if (_error != null)
+{
+    <div class="container alert-danger">@_error</div>
+}
+@if (_success != null)
+{
+    <div class="container alert-success">@_success</div>
+}
+@if (_supplier != null)
+{
+    <EditForm
+        Model="@_supplier"
+        OnValidSubmit="@HandleValidSubmit"
+        class="w-50">
+
+        <DataAnnotationsValidator/>
+        <ValidationSummary/>
+
+        <div class="form-group">
+            <label for="name">Business Name</label>
+            <InputText
+                id="name" class="form-control"
+                @bind-Value="_supplier.SupplierName"/>
+        </div>
+        <div class="form-group">
+            <label for="email">Contact Email</label>
+            <InputText
+                type="email"
+                id="email" class="form-control"
+                @bind-Value="_supplier.Email"/>
+        </div>
+        <div class="form-group">
+            <label for="phone">Contact Phone</label>
+            <InputText
+                type="tel"
+                id="phone" class="form-control"
+                @bind-Value="_supplier.PhoneNo"/>
+        </div>
+        <div class="form-group">
+            <label for="website">Your website</label>
+            <InputText
+                type="url"
+                id="website" class="form-control"
+                @bind-Value="_supplier.Website"/>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Update Profile</button>
+        </div>
+        <p>Want to change your email or password, or delete your account? <a href="/Identity/Account/Manage">Click here</a>.</p>
+
+    </EditForm>
+}
 
 @code {
-    
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    private ApiSupplier _supplier = null;
+    private string _error = null;
+    private string _success = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
+            if (userId != null)
+            {
+                var uriBuilder = new UriBuilder(Http.BaseAddress)
+                {
+                    Path = "api/Supplier",
+                    Query = $"userId={userId}"
+                };
+
+                _supplier = await Http.GetFromJsonAsync<ApiSupplier>(uriBuilder.ToString());
+            }
+        }
+        catch (AccessTokenNotAvailableException e)
+        {
+            e.Redirect();
+        }
+        catch (HttpRequestException e)
+        {
+            _error = "An error occurred loading your account.";
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (!string.IsNullOrEmpty(_supplier?.UserId))
+        {
+            var response = await Http.PutAsJsonAsync($"api/Supplier/{_supplier.UserId}", _supplier);
+            if (!response.IsSuccessStatusCode)
+            {
+                _error = "An error occurred updating your account";
+            }
+            else
+            {
+                _success = "Account updated!";
+            }
+        }
+    }
+
 }

@@ -40,19 +40,14 @@ namespace RecipEase.Server.Controllers
         /// A 'select*' query with a 'where' clause to find the username
         /// and its associated attributes.
         /// </remarks>
-        /// <param name="username">The Username of the Customer to retrieve.</param>
+        /// <param name="userId">The Username of the Customer to retrieve.</param>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesDefaultResponseType]
-        public async Task<ActionResult<ApiCustomer>> GetCustomer(string username)
+        public async Task<ActionResult<ApiCustomer>> GetCustomer(string userId)
         {
-            var query =
-                from user in
-                    _context.User join c in _context.Customer on user.Id equals c.UserId
-                where user.UserName == username select c;
-            
-            var customer = await query.FirstOrDefaultAsync();
+            var customer = await _context.Customer.FindAsync(userId);
 
             if (customer == null)
             {
@@ -78,7 +73,7 @@ namespace RecipEase.Server.Controllers
         /// An Update operation is used to update the Customer in the database if
         /// the user exists.
         /// </remarks>
-        ///<param name="id">The username of the Customer to update.</param>
+        ///<param name="id">The user id of the Customer to update.</param>
         ///<param name="apiCustomer">The Customer object to be updated.</param>
         [HttpPut("{id}")]
         [Consumes("application/json")]

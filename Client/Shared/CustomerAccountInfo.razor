@@ -3,6 +3,8 @@
 @using Meal = RecipEase.Shared.Models.Meal
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using System.Net
+@using RecipEase.Client.Shared.Util
+@using RecipEase.Shared
 @inject HttpClient Http
 
 <h2>Account Info</h2>
@@ -19,7 +21,8 @@
 {
     <EditForm
         Model="@_customer"
-        OnValidSubmit="@HandleValidSubmit">
+        OnValidSubmit="@HandleValidSubmit"
+        class="w-50">
 
         <DataAnnotationsValidator/>
         <ValidationSummary/>
@@ -72,14 +75,13 @@
     {
         try
         {
-            var authState = await AuthenticationStateTask;
-            var user = authState.User;
-            if (user.Identity != null && user.Identity.IsAuthenticated)
+            var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
+            if (userId != null)
             {
                 var uriBuilder = new UriBuilder(Http.BaseAddress)
                 {
                     Path = "api/Customer",
-                    Query = $"username={user.Identity.Name}"
+                    Query = $"userId={userId}"
                 };
                 
                 _customer = await Http.GetFromJsonAsync<ApiCustomer>(uriBuilder.ToString());
