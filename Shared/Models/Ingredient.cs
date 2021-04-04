@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using RecipEase.Shared.Models.Api;
 
 namespace RecipEase.Shared.Models
 {
-    public enum Rarity {
-        Common, Rare, VeryRare
-    }
-
     public class Ingredient
     {
         [Key]

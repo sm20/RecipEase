@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using RecipEase.Server.Data;
 using RecipEase.Shared.Models.Api;
 using Microsoft.AspNetCore.Authorization;
+using RecipEase.Shared.ApiResponses;
+using RecipEase.Shared.Models;
 
 namespace RecipEase.Server.Controllers
 {
@@ -19,52 +22,61 @@ namespace RecipEase.Server.Controllers
     public class SuppliesController : ControllerBase
     {
         private readonly RecipEaseContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public SuppliesController(RecipEaseContext context)
+        public SuppliesController(RecipEaseContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
-        /// Returns list of Suppliers' Ingredient stock
+        /// Returns ingredients supplied by a supplier.
         /// </summary>
         /// <remarks>
         ///
-        /// Retrieves all ingredients that all suppliers supply,
-        /// and their associated attributes, from the `supplies` table.
-        ///
-        /// A 'select*' query with a 'where' clause to find the list of ingredients
-        ///and their associated attributes is performed.
+        /// The ingredients, units, and quantities are retrieved from the `Supplies`, `Ingredient`, and `Unit` tables
+        /// using `select` queries. The supplier with the given username is retrieved from the `Users` table as
+        /// necessary using a `select query.
+        /// 
         /// </remarks>
+        /// <param name="userId">The user id of the supplier whose supplied ingredients should be retrieved.</param>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ApiSupplies>>> GetApiSupplies()
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
+        public async Task<ActionResult<List<QuantifiedIngredient>>> GetSuppliedIngredients(string userId)
         {
-            return await _context.ApiSupplies.ToListAsync();
-        }
+            var query =
+                from supplies in _context.Supplies
+                join unit in _context.Unit on supplies.UnitName equals unit.Name
+                join ingredient in _context.Ingredient on supplies.IngrName equals ingredient.Name
+                where supplies.UserId == userId
+                select new QuantifiedIngredient()
+                {
+                    Ingredient = new ApiIngredient()
+                    {
+                        Name = ingredient.Name,
+                        Rarity = ingredient.Rarity,
+                        WeightToVolRatio = ingredient.WeightToVolRatio
+                    },
+                    Quantity = supplies.Quantity,
+                    Unit = new ApiUnit()
+                    {
+                        Name = unit.Name,
+                        Symbol = unit.Symbol,
+                        UnitType = unit.UnitType
+                    }
+                };
 
-        /// <summary>
-        /// Returns the list of suppliers of an ingredient
-        /// </summary>
-        /// <remarks>
-        ///
-        /// Retrieves the object with the given ingredient name, from the
-        /// `Supplies` table, if it exists.
-        ///
-        /// A 'select user,ingredient' query with a 'where' clause to find the ingredient
-        /// and its associated suppliers.
-        /// </remarks>
-        /// <param name="id">The ingredient name in the Supplies table.</param>
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ApiSupplies>> GetApiSupplies(string id)
-        {
-            var apiSupplies = await _context.ApiSupplies.FindAsync(id);
+            var ingredientList = await query.ToListAsync();
 
-            if (apiSupplies == null)
+            if (ingredientList == null)
             {
                 return NotFound();
             }
 
-            return apiSupplies;
+            return ingredientList;
         }
 
         /// <summary>
@@ -72,25 +84,34 @@ namespace RecipEase.Server.Controllers
         /// </summary>
         /// <remarks>
         ///
-        /// Updates information of an existing supplies entry
+        /// Updates the quantity information of an existing supplies entry
         /// in the supplies table of the database.
-        /// The authenticated user must be the user to update the entry.
+        /// The authenticated user must be the supplier whose ingredient is to be updated.
         ///
         /// An Update operation is used to update the supplies entry in the database, if
         /// the entry exists.
         /// </remarks>
-        ///<param name="id">The ingredient to update.</param>
-        ///<param name="apiSupplies">The Supplies object to be updated.</param>
-        [HttpPut("{id}")]
+        ///<param name="userId">The supplier who supplies the ingredient to be updated.</param>
+        ///<param name="quantifiedIngredient">The new ingredient data.</param>
+        [HttpPut]
         [Consumes("application/json")]
-        public async Task<IActionResult> PutApiSupplies(string id, ApiSupplies apiSupplies)
+        public async Task<IActionResult> PutSupplies(string userId, QuantifiedIngredient quantifiedIngredient)
         {
-            if (id != apiSupplies.IngrName)
+            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId != currentUserId)
             {
-                return BadRequest();
+                return Unauthorized();
             }
 
-            _context.Entry(apiSupplies).State = EntityState.Modified;
+            var updatedSupplies = new Supplies()
+            {
+                Quantity = quantifiedIngredient.Quantity,
+                UnitName = quantifiedIngredient.Unit.Name,
+                IngrName = quantifiedIngredient.Ingredient.Name,
+                UserId = userId
+            };
+
+            _context.Entry(updatedSupplies).State = EntityState.Modified;
 
             try
             {
@@ -98,14 +119,12 @@ namespace RecipEase.Server.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ApiSuppliesExists(id))
+                if (!SuppliesExists(updatedSupplies))
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
             return NoContent();
@@ -118,6 +137,8 @@ namespace RecipEase.Server.Controllers
         ///
         /// Add a new supplies entry to the Supplies relation,
         /// if the entry does not exist in the Supplies relation of the database.
+        ///
+        /// The authenticated user must be the supplier of the new item.
         /// 
         /// An Insert  operation to insert a new supplies entry is performed.
         /// </remarks>
@@ -126,24 +147,29 @@ namespace RecipEase.Server.Controllers
         [Consumes("application/json")]
         public async Task<ActionResult<ApiSupplies>> PostApiSupplies(ApiSupplies apiSupplies)
         {
-            _context.ApiSupplies.Add(apiSupplies);
+            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (apiSupplies.UserId != currentUserId)
+            {
+                return Unauthorized();
+            }
+            
+            var supplies = Supplies.FromApiSupplies(apiSupplies);
+            await _context.Supplies.AddAsync(supplies);
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
-                if (ApiSuppliesExists(apiSupplies.IngrName))
+                if (SuppliesExists(supplies))
                 {
                     return Conflict();
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
-            return CreatedAtAction("GetApiSupplies", new { id = apiSupplies.IngrName }, apiSupplies);
+            return CreatedAtAction("GetSuppliedIngredients", new {id = apiSupplies.IngrName}, apiSupplies);
         }
 
         /// <summary>
@@ -154,27 +180,49 @@ namespace RecipEase.Server.Controllers
         /// Delete a supplies entry from the Supplies relation,
         /// if the entry exists in the Supplies relation of the database.
         /// 
+        /// The authenticated user must be the supplier of the item to be deleted.
+        /// 
         /// A Delete operation to delete a supplies entry is performed.
         /// </remarks>
-        ///<param name="id">The supplies entry to delete.</param>
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteApiSupplies(string id)
+        ///<param name="apiSupplies">The entry to delete.</param>
+        [HttpDelete]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
+        public async Task<IActionResult> DeleteSupplies(ApiSupplies apiSupplies)
         {
-            var apiSupplies = await _context.ApiSupplies.FindAsync(id);
-            if (apiSupplies == null)
+            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (apiSupplies.UserId != currentUserId)
             {
-                return NotFound();
+                return Unauthorized();
             }
 
-            _context.ApiSupplies.Remove(apiSupplies);
-            await _context.SaveChangesAsync();
+            var deletedSupplies = Supplies.FromApiSupplies(apiSupplies);
+
+            _context.Entry(deletedSupplies).State = EntityState.Deleted;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!SuppliesExists(deletedSupplies))
+                {
+                    return NotFound();
+                }
+
+                throw;
+            }
 
             return NoContent();
         }
 
-        private bool ApiSuppliesExists(string id)
+        private bool SuppliesExists(Supplies supplies)
         {
-            return _context.ApiSupplies.Any(e => e.IngrName == id);
+            return _context.Supplies.Any(e =>
+                e.IngrName == supplies.IngrName && e.UnitName == supplies.UnitName && e.UserId == supplies.UserId);
         }
     }
 }

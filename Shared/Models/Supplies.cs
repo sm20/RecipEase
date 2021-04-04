@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using RecipEase.Shared.Models.Api;
 
 namespace RecipEase.Shared.Models
 {
@@ -21,5 +22,16 @@ namespace RecipEase.Shared.Models
         public Supplier Supplier { get; set; }
         public Ingredient Ingredient { get; set; }
         public Unit Unit { get; set; }
+
+        public static Supplies FromApiSupplies(ApiSupplies apiSupplies)
+        {
+            return new()
+            {
+                Quantity = apiSupplies.Quantity,
+                IngrName = apiSupplies.IngrName,
+                UserId = apiSupplies.UserId,
+                UnitName = apiSupplies.UnitName
+            };
+        }
     }
 }

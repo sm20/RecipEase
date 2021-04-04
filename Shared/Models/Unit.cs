@@ -1,12 +1,9 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using RecipEase.Shared.Models.Api;
 
 namespace RecipEase.Shared.Models
 {
-    public enum UnitType {
-        Volume, Mass
-    }
-
     public class Unit
     {
         [Key]
