@@ -1,0 +1,58 @@
+﻿@using RecipEase.Shared.Models.Api
+@using RecipEase.Client.Shared.Util
+@inject HttpClient Http
+
+@if (Collection != null)
+{
+    <details class="card mb-4">
+        <summary class="card-header d-flex align-items-center justify-content-between" @onclick="OnCollectionExpand">
+            <span style="text-decoration: underline">@Collection.Title</span>
+            <TrashButton></TrashButton>
+        </summary>
+        @if (RecipesInCollection != null)
+        {
+            <div class="card-body">
+                <div class="list-group">
+                    @foreach (var recipeInCollection in RecipesInCollection)
+                    {
+                        <RecipeCard Id="@recipeInCollection.RecipeId"></RecipeCard>
+                        <TrashButton></TrashButton>
+                    }
+                </div>
+            </div>
+        }
+    </details>
+}
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    [Parameter]
+    public ApiRecipeCollection Collection { get; set; }
+
+    private List<ApiRecipeInCollection> RecipesInCollection { get; set; }
+
+    private bool Expanded { get; set; }
+
+    private async Task OnCollectionExpand(MouseEventArgs args)
+    {
+        if (Expanded)
+        {
+            return;
+        }
+        
+        var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
+        if (userId != null)
+        {
+            Expanded = true;
+            var uriBuilder = new UriBuilder(Http.BaseAddress)
+            {
+                Path = "api/RecipeCollection",
+                Query = $"userId={userId}&collectionTitle={Collection.Title}"
+            };
+            RecipesInCollection = await Http.GetFromJsonAsync<List<ApiRecipeInCollection>>(uriBuilder.ToString());
+        }
+    }
+
+}

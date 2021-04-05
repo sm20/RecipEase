@@ -38,11 +38,16 @@ namespace RecipEase.Server.Controllers
         /// included to filter for the given recipe collection.
         ///
         /// </remarks>
+        /// <param name="userId">The userId of the customer who owns the collections to be retrieved.</param>
+        /// <param name="collectionTitle">The title of the collection whose recipes should be retrieved.</param>
         [HttpGet]
         [Consumes("application/json")]
-        public async Task<ActionResult<IEnumerable<ApiRecipeInCollection>>> GetRecipeInCollection(ApiRecipeCollection collection)
+        public async Task<ActionResult<IEnumerable<ApiRecipeInCollection>>> GetRecipeInCollection(string userId, string collectionTitle)
         {
-            return await _context.ApiRecipeInCollection.ToListAsync();
+            var query = from c in _context.RecipeInCollection
+                where c.CollectionTitle == collectionTitle && c.CollectionUserId == userId
+                select c;
+            return await query.Select(c => c.ToApiRecipeInCollection()).ToListAsync();
         }
 
         /// <summary>
@@ -88,7 +93,7 @@ namespace RecipEase.Server.Controllers
                 }
             }
 
-            return CreatedAtAction("GetApiRecipeInCollection", new { id = apiRecipeInCollection.RecipeId }, apiRecipeInCollection);
+            return CreatedAtAction("GetRecipeInCollection", new { id = apiRecipeInCollection.RecipeId }, apiRecipeInCollection);
         }
 
         /// <summary>

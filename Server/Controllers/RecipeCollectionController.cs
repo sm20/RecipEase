@@ -41,7 +41,8 @@ namespace RecipEase.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ApiRecipeCollection>>> GetRecipeCollection(string userId)
         {
-            return await this._context.ApiRecipeCollection.ToListAsync();
+            var query = from c in _context.RecipeCollection where c.UserId == userId select c;
+            return await query.Select(c => c.ToApiRecipeCollection()).ToListAsync();
         }
 
         /// <summary>
@@ -86,7 +87,7 @@ namespace RecipEase.Server.Controllers
                 }
             }
 
-            return CreatedAtAction("GetApiRecipeCollection", new { id = apiRecipeCollection.UserId }, apiRecipeCollection);
+            return CreatedAtAction("GetRecipeCollection", new { id = apiRecipeCollection.UserId }, apiRecipeCollection);
         }
 
         /// <summary>
