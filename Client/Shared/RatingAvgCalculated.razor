@@ -1,3 +1,10 @@
+@using RecipEase.Shared.Models
+@using RecipEase.Shared.Models.Api
+@using System.Net
+@using RecipEase.Client.Shared.Util
+@using RecipEase.Shared
+@inject HttpClient Http
+
 <span>
     <small>
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
@@ -8,5 +15,15 @@
 </span>
 @code
 {
+    protected override async Task OnInitializedAsync()
+    {
+        var uriBuilder = new UriBuilder(Http.BaseAddress)
+    {
+        Path = "api/RecipeRating",
+        //Query = $"userId={userId}"
+    };
+
+    }
+    
     double ratingValue = 4.5;
 }
