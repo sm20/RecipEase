@@ -1,0 +1,136 @@
+﻿@using RecipEase.Shared.Models.Api
+@using RecipEase.Shared.ApiResponses
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using RecipEase.Client.Shared.Util
+@inject HttpClient Http
+
+<h2>Supplied Ingredients</h2>
+@foreach (var error in Errors)
+{
+    <div class="alert-danger">@error</div>
+}
+<ul class="list-group list-group-flush mb-4">
+    <IngredientListView
+        Ingredients="@Ingredients"
+        SaveHandler="@SaveHandler"
+    ></IngredientListView>
+</ul>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    private Dictionary<string, QuantifiedIngredient> Ingredients { get; set; }
+    private Dictionary<string, QuantifiedIngredient> OriginalIngredients { get; set; }
+
+    private List<string> Errors { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
+            if (userId != null)
+            {
+                var uriBuilder = new UriBuilder(Http.BaseAddress)
+                {
+                    Path = "api/Supplies",
+                    Query = $"userId={userId}"
+                };
+
+                var ingredients = await Http.GetFromJsonAsync<List<QuantifiedIngredient>>(uriBuilder.ToString());
+                Ingredients = ingredients?.ToDictionary(ing => ing.Ingredient.Name, ing => ing);
+                if (Ingredients != null)
+                {
+                    SetOriginalIngredients(Ingredients);
+                }
+            }
+        }
+        catch (AccessTokenNotAvailableException e)
+        {
+            e.Redirect();
+        }
+    }
+
+    private void SetOriginalIngredients(Dictionary<string, QuantifiedIngredient> ingredients)
+    {
+        OriginalIngredients = ingredients.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.GetCopy());
+    }
+
+    private async Task SaveHandler(MouseEventArgs e)
+    {
+        const string apiSuppliesEndpoint = "api/Supplies";
+        var updatedKeys = Ingredients.Keys;
+        var originalKeys = OriginalIngredients.Keys;
+
+        var removedKeys = originalKeys.Except(updatedKeys).ToHashSet();
+        var addedKeys = updatedKeys.Except(originalKeys).ToHashSet();
+        var remainingKeys = updatedKeys.Except(removedKeys.Union(addedKeys)).ToHashSet();
+
+        var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
+        if (userId != null)
+        {
+            Errors.Clear();
+
+            foreach (var (key, removedIngredient) in IterIngredientsByKeys(OriginalIngredients, removedKeys))
+            {
+                var removedApiSupplies = removedIngredient.ToApiSupplies(userId);
+                var uriBuilder = new UriBuilder(Http.BaseAddress)
+                {
+                    Path = apiSuppliesEndpoint
+                };
+                var request = new HttpRequestMessage
+                {
+                    Content = JsonContent.Create(removedApiSupplies),
+                    Method = HttpMethod.Delete,
+                    RequestUri = uriBuilder.Uri
+                };
+                var response = await Http.SendAsync(request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    Errors.Add($"Could not remove ingredient {removedIngredient.Ingredient.Name}.");
+                    Ingredients.Add(key, removedIngredient);
+                }
+            }
+
+            foreach (var (key, addedIngredient) in IterIngredientsByKeys(Ingredients, addedKeys))
+            {
+                var newApiSupplies = addedIngredient.ToApiSupplies(userId);
+
+                var response = await Http.PostAsJsonAsync(apiSuppliesEndpoint, newApiSupplies);
+                if (!response.IsSuccessStatusCode)
+                {
+                    Errors.Add($"Could not add ingredient {addedIngredient.Ingredient.Name}.");
+                    Ingredients.Remove(key);
+                }
+            }
+
+            foreach (var (key, remainingIngredient) in IterIngredientsByKeys(OriginalIngredients, remainingKeys))
+            {
+                var updatedIngredient = Ingredients[key];
+                if (remainingIngredient.Equals(updatedIngredient)) continue;
+
+                var uriBuilder = new UriBuilder(Http.BaseAddress)
+                {
+                    Path = apiSuppliesEndpoint,
+                    Query = $"userId={userId}"
+                };
+
+                var response = await Http.PutAsJsonAsync(uriBuilder.ToString(), updatedIngredient);
+                if (!response.IsSuccessStatusCode)
+                {
+                    Errors.Add($"Could not update ingredient {remainingIngredient.Ingredient.Name}.");
+                }
+            }
+        }
+
+        SetOriginalIngredients(Ingredients);
+    }
+
+    private IEnumerable<(string key, QuantifiedIngredient)> IterIngredientsByKeys(Dictionary<string, QuantifiedIngredient>
+        ingredients, HashSet<string> keys)
+    {
+        return keys.Select(key => (key, ingredients[key]));
+    }
+}

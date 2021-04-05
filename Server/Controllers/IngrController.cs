@@ -40,7 +40,7 @@ namespace RecipEase.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ApiIngredient>>> GetApiIngredient()
         {
-            return await _context.ApiIngredient.ToListAsync();
+            return await _context.Ingredient.Select(ing => ing.ToApiIngredient()).ToListAsync();
         }
 
         /// <summary>

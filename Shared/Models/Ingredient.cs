@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using RecipEase.Shared.Models.Api;
 
 namespace RecipEase.Shared.Models
 {
-    public enum Rarity {
-        Common, Rare, VeryRare
-    }
-
     public class Ingredient
     {
         [Key]
@@ -19,5 +16,15 @@ namespace RecipEase.Shared.Models
         
 
         public ICollection<Supplies> SuppliedBy { get; set; }
+        
+        public ApiIngredient ToApiIngredient()
+        {
+            return new()
+            {
+                Name = Name,
+                Rarity = Rarity,
+                WeightToVolRatio = WeightToVolRatio
+            };
+        }
     }
 }

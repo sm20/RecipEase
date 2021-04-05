@@ -1,0 +1,41 @@
+﻿@using RecipEase.Shared.ApiResponses
+@using RecipEase.Shared.Models.Api
+@inject HttpClient Http
+
+<ul
+    class="dropdown-menu"
+    aria-labelledby="@DropdownLabel"
+>
+    <IngredientListView
+        LiClasses="dropdown-item"
+        ShowDelete="@false"
+        ShowAdd="@true"
+        Ingredients="@Ingredients"
+        ShowNewIngredient="@false"
+        ShowSave="@false"
+        OnAdd="@AddHandler"
+    ></IngredientListView>
+</ul>
+
+@code {
+    [Parameter]
+    public Action<QuantifiedIngredient> OnAdd { get; set; }
+
+    [Parameter]
+    public string DropdownLabel { get; set; }
+
+    public Dictionary<string, QuantifiedIngredient> Ingredients { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        var ingredients = await Http.GetFromJsonAsync<List<ApiIngredient>>("api/Ingr");
+        Ingredients = ingredients?.ToDictionary(
+            ing => ing.Name,
+            ing => ing.ToQuantifiedIngredient());
+    }
+
+    private void AddHandler(string ingredientKey)
+    {
+        OnAdd(Ingredients[ingredientKey]);
+    }
+}

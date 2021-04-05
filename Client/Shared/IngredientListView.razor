@@ -1,0 +1,143 @@
+﻿@using RecipEase.Shared.ApiResponses
+
+@if (Ingredients != null)
+{
+    @if (ShowSave)
+    {
+        <button @onclick="SaveHandler" class="btn btn-primary">
+            Save Changes
+        </button>
+    }
+    @if (ShowNewIngredient)
+    {
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle"
+                    type="button"
+                    id="add-ingredient-dropdown"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                + Add Ingredient
+            </button>
+            <IngredientAddDropdown
+                DropdownLabel="add-ingredient-dropdown"
+                OnAdd="@OnNewIngredient"></IngredientAddDropdown>
+        </div>
+    }
+    @foreach (var (key, quantifiedIngredient) in Ingredients)
+    {
+        <li class="list-group-item d-flex justify-content-between align-items-center @LiClasses" @key="key">
+            <span>@quantifiedIngredient.Ingredient.Name</span>
+            <div class="d-inline-flex">
+                <input
+                    type="number"
+                    class="form-control w-25"
+                    placeholder="Amount"
+                    @bind=@quantifiedIngredient.Quantity/>
+                <select class="form-control w-50">
+                    <option selected>@quantifiedIngredient.Unit.Name</option>
+                </select>
+            </div>
+            <span class="badge badge-primary badge-pill">@(quantifiedIngredient.Ingredient.Rarity?.ToString())</span>
+            @if (ShowDelete)
+            {
+                <TrashButton ClickHandler="@GetDeleteHandler(key)"></TrashButton>
+            }
+            @if (ShowAdd)
+            {
+                <AddButton ClickHandler="@GetAddHandler(key)"></AddButton>
+            }
+        </li>
+    }
+}
+
+@code
+{
+    /// Ingredients to be shown
+    [Parameter]
+    public Dictionary<string, QuantifiedIngredient> Ingredients { get; set; }
+
+    /// Handler to be called when the user saves their changes
+    [Parameter]
+    public EventCallback<MouseEventArgs> SaveHandler { get; set; }
+
+    /// Controls whether the delete button should be shown next to each ingredient.
+    [Parameter]
+    public bool ShowDelete { get; set; } = true;
+
+    /// Controls whether the add button should be shown next to each ingredient.
+    [Parameter]
+    public bool ShowAdd { get; set; }
+
+    /// Controls whether the new ingredient button should be shown with the list.
+    [Parameter]
+    public bool ShowNewIngredient { get; set; } = true;
+
+    /// Controls whether the save button should be shown with the list.
+    [Parameter]
+    public bool ShowSave { get; set; } = true;
+
+    /// Handler to be called when the delete button is pressed on an item. Gets passed the ingredient key. If this is
+    /// not provided, by default the ingredient will be removed on click.
+    [Parameter]
+    public Action<string> OnDelete { get; set; }
+
+    /// Handler to be called when the add button is pressed on an item. Gets passed the ingredient key. If this is
+    /// not provided, by default nothing will happen.
+    [Parameter]
+    public Action<string> OnAdd { get; set; }
+
+
+    [Parameter]
+    public string LiClasses { get; set; }
+
+    private void DefaultDeleteHandler(string key)
+    {
+        Ingredients.Remove(key);
+        StateHasChanged();
+    }
+
+    private EventCallback<MouseEventArgs> GetAddHandler(string ingredientKey)
+    {
+        void AddHandler(object _)
+        {
+            if (OnAdd != null)
+            {
+                OnAdd(ingredientKey);
+            }
+        }
+
+        return GetEventCallback(AddHandler);
+    }
+
+    private EventCallback<MouseEventArgs> GetDeleteHandler(string ingredientKey)
+    {
+        void DeleteHandler(object _)
+        {
+            if (OnDelete != null)
+            {
+                OnDelete(ingredientKey);
+            }
+            else
+            {
+                DefaultDeleteHandler(ingredientKey);
+            }
+        }
+
+        return GetEventCallback(DeleteHandler);
+    }
+
+    private EventCallback<MouseEventArgs> GetEventCallback(Action<object> handler)
+    {
+        return new(this, handler);
+    }
+
+    private void OnNewIngredient(QuantifiedIngredient newIngredient)
+    {
+        var key = newIngredient.Ingredient.Name;
+        if (!Ingredients.ContainsKey(key))
+        {
+            Ingredients.Add(key, newIngredient);
+            StateHasChanged();
+        }
+    }
+}
