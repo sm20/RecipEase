@@ -16,5 +16,15 @@ namespace RecipEase.Shared.Models
         
 
         public ICollection<Supplies> SuppliedBy { get; set; }
+        
+        public ApiIngredient ToApiIngredient()
+        {
+            return new()
+            {
+                Name = Name,
+                Rarity = Rarity,
+                WeightToVolRatio = WeightToVolRatio
+            };
+        }
     }
 }
