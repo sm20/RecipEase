@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using RecipEase.Shared;
 using RecipEase.Shared.Models;
 using RecipEase.Shared.Models.Api;
+using Visibility = RecipEase.Shared.Models.Visibility;
 
 namespace RecipEase.Server.Data
 {
@@ -18,6 +19,8 @@ namespace RecipEase.Server.Data
         private static int _recipe0Id;
         private static int _recipe1Id;
         private static int _recipe2Id;
+        private static string _recColl1Title = "Favourite breakfasts";
+        private static string _recColl2Title = "Favourite seafoods";
         private const string TestCustomerUsername = "c@c";
         private const string TestCustomerPassword = "c";
         private const string TestSupplierUsername = "s@s";
@@ -35,6 +38,7 @@ namespace RecipEase.Server.Data
 
             await InitializeRecipes(context);
             await InitializeRecipeRatings(context);
+            await InitializeRecipeCollections(context);
 
             await context.SaveChangesAsync();
         }
@@ -92,6 +96,62 @@ namespace RecipEase.Server.Data
                 _recipe0Id = allRecipes[0].Id;
                 _recipe1Id = allRecipes[1].Id;
                 _recipe2Id = allRecipes[2].Id;
+            }
+        }
+        
+        private static async Task InitializeRecipeCollections(RecipEaseContext context)
+        {
+            if (!context.RecipeCollection.Any())
+            {
+                var recipeCollections = new[]
+                {
+                    new RecipeCollection
+                    {
+                        UserId = _testCustomerId,
+                        Title = _recColl1Title,
+                        Description = "All my favourite breakfast recipes",
+                        Visibility = Visibility.Public
+                    },
+                    new RecipeCollection
+                    {
+                        UserId = _testCustomerId,
+                        Title = _recColl2Title,
+                        Description = "All my favourite seafood recipes",
+                        Visibility = Visibility.Public
+                    },
+                };
+
+                var recipeInCollections = new[]
+                {
+                    new RecipeInCollection
+                    {
+                        RecipeId = _recipe0Id,
+                        CollectionTitle = _recColl1Title,
+                        CollectionUserId = _testCustomerId,
+                    },
+                    new RecipeInCollection
+                    {
+                        RecipeId = _recipe1Id,
+                        CollectionTitle = _recColl1Title,
+                        CollectionUserId = _testCustomerId,
+                    },
+                    new RecipeInCollection
+                    {
+                        RecipeId = _recipe1Id,
+                        CollectionTitle = _recColl2Title,
+                        CollectionUserId = _testCustomerId,
+                    },
+                    new RecipeInCollection
+                    {
+                        RecipeId = _recipe2Id,
+                        CollectionTitle = _recColl2Title,
+                        CollectionUserId = _testCustomerId,
+                    },
+                };
+                
+                await context.RecipeCollection.AddRangeAsync(recipeCollections);
+                await context.RecipeInCollection.AddRangeAsync(recipeInCollections);
+                await context.SaveChangesAsync();
             }
         }
 
