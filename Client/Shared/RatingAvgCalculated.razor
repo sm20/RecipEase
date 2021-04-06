@@ -15,15 +15,22 @@
 </span>
 @code
 {
+    double ratingValue = 4.5;
+
+    [CascadingParameter]
+    public string RecipeId { get; set; }
     protected override async Task OnInitializedAsync()
     {
+        Console.WriteLine(RecipeId);
+        
         var uriBuilder = new UriBuilder(Http.BaseAddress)
-    {
-        Path = "api/RecipeRating",
-        //Query = $"userId={userId}"
-    };
+        {
+            Path = "api/RecipeRating",
+            //Query = $"userId={null}" + "&" + $"recipeId={recipeId}"
+        };
+
 
     }
     
-    double ratingValue = 4.5;
+    
 }
