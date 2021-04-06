@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using RecipEase.Shared;
 using RecipEase.Shared.Models;
 using RecipEase.Shared.Models.Api;
@@ -12,6 +13,9 @@ namespace RecipEase.Server.Data
     {
         private static string _testCustomerId;
         private static string _testSupplierId;
+        private static int _recipe0Id;
+        private static int _recipe1Id;
+        private static int _recipe2Id;
         private const string TestCustomerUsername = "c@c";
         private const string TestCustomerPassword = "c";
         private const string TestSupplierUsername = "s@s";
@@ -25,6 +29,102 @@ namespace RecipEase.Server.Data
             await InitializeRoles(roleManager);
             await InitializeUsers(context, userManager);
 
+            await InitializeSupplies(context);
+
+            await InitializeRecipes(context);
+            await InitializeRecipeRatings(context);
+
+            await context.SaveChangesAsync();
+        }
+
+        private static async Task InitializeRecipes(RecipEaseContext context)
+        {
+            if (!context.Recipe.Any())
+            {
+                var recipes = new[]
+                {
+                    new Recipe
+                    {
+                        Name = "Mac N' Cheese",
+                        AuthorId = _testCustomerId,
+                        Calories = 1,
+                        Carbs = 2,
+                        Cholesterol = 3,
+                        Fat = 4,
+                        Protein = 5,
+                        Sodium = 6,
+                        Steps = "The steps to make the recipe..."
+                    },
+                    new Recipe
+                    {
+                        Name = "Pork Cutlets",
+                        AuthorId = _testCustomerId,
+                        Calories = 1,
+                        Carbs = 2,
+                        Cholesterol = 3,
+                        Fat = 4,
+                        Protein = 5,
+                        Sodium = 6,
+                        Steps = "The steps to make the recipe..."
+                    },
+                    new Recipe
+                    {
+                        Name = "Sushi",
+                        AuthorId = _testCustomerId,
+                        Calories = 1,
+                        Carbs = 2,
+                        Cholesterol = 3,
+                        Fat = 4,
+                        Protein = 5,
+                        Sodium = 6,
+                        Steps = "The steps to make the recipe..."
+                    },
+                };
+
+                await context.Recipe.AddRangeAsync(recipes);
+                await context.SaveChangesAsync();
+            }
+            var allRecipes = await context.Recipe.ToListAsync();
+            if (allRecipes.Count == 3)
+            {
+                _recipe0Id = allRecipes[0].Id;
+                _recipe1Id = allRecipes[1].Id;
+                _recipe2Id = allRecipes[2].Id;
+            }
+        }
+
+        private static async Task InitializeRecipeRatings(RecipEaseContext context)
+        {
+            if (!context.RecipeRating.Any())
+            {
+                var recipeRatings = new[]
+                {
+                    new RecipeRating
+                    {
+                        Rating = 5,
+                        RecipeId = _recipe0Id,
+                        UserId = _testCustomerId
+                    },
+                    new RecipeRating
+                    {
+                        Rating = 4,
+                        RecipeId = _recipe1Id,
+                        UserId = _testCustomerId
+                    },
+                    new RecipeRating
+                    {
+                        Rating = 3,
+                        RecipeId = _recipe2Id,
+                        UserId = _testCustomerId
+                    },
+                };
+                
+                await context.RecipeRating.AddRangeAsync(recipeRatings);
+            }
+        }
+
+        private static async Task InitializeSupplies(RecipEaseContext context)
+        {
             const string flour = "Flour";
             const string grams = "Grams";
             const string cups = "Cups";
@@ -108,19 +208,33 @@ namespace RecipEase.Server.Data
 
                 await context.Supplies.AddRangeAsync(supplies);
             }
-
-            await context.SaveChangesAsync();
         }
 
         private static async Task InitializeUsers(RecipEaseContext context, UserManager<User> userManager)
         {
-            var (customer, _) = await Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                TestCustomerUsername, TestCustomerPassword);
-            _testCustomerId = customer.Id;
+            var existingCustomer = await context.Customer.FirstOrDefaultAsync();
+            if (existingCustomer == null)
+            {
+                var (customer, _) = await Users.CreateUser(userManager, context, Users.AccountType.Customer,
+                    TestCustomerUsername, TestCustomerPassword);
+                _testCustomerId = customer.Id;
+            }
+            else
+            {
+                _testCustomerId = existingCustomer.UserId;
+            }
 
-            var (supplier, _) = await Users.CreateUser(userManager, context, Users.AccountType.Supplier,
-                TestSupplierUsername, TestSupplierPassword);
-            _testSupplierId = supplier.Id;
+            var existingSupplier = await context.Supplier.FirstOrDefaultAsync();
+            if (existingSupplier == null)
+            {
+                var (supplier, _) = await Users.CreateUser(userManager, context, Users.AccountType.Supplier,
+                    TestSupplierUsername, TestSupplierPassword);
+                _testSupplierId = supplier.Id;
+            }
+            else
+            {
+                _testSupplierId = existingSupplier.UserId;
+            }
         }
 
         private static async Task InitializeRoles(RoleManager<IdentityRole> roleManager)
