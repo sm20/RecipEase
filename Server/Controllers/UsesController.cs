@@ -58,7 +58,7 @@ namespace RecipEase.Server.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<IEnumerable<ApiUses>>> GetApiUses(int id)
         {
-            var apiUses = await _context.ApiUses.FindAsync(id);
+            var apiUses = await _context.ApiUses.ToListAsync();
 
             if (apiUses == null)
             {

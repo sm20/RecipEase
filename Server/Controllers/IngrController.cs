@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecipEase.Server.Data;
 using RecipEase.Shared.Models;
+using RecipEase.Shared.Models.Api;
 
 namespace RecipEase.Server.Controllers
 {
@@ -38,7 +39,7 @@ namespace RecipEase.Server.Controllers
         /// </remarks>
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Ingredient>>> GetApiIngredient()
+        public async Task<ActionResult<IEnumerable<ApiIngredient>>> GetApiIngredient()
         {
 
             return await _context.Ingredient.Select(ing => ing.ToApiIngredient()).ToListAsync();
