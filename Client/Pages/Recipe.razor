@@ -4,10 +4,8 @@
 @using RecipEase.Client.Shared.Util
 @inject IHttpClientFactory ClientFactory
 
-
 @if (RecipeViewed != null && uses != null)
 {
-    <h1>@RecipeViewed.Name</h1>
 
     <h1>Recipe Title
         <CascadingValue Value="@RecipeId">
@@ -46,7 +44,7 @@
             <p> <b>Carbohydrates:</b> @RecipeViewed.Carbs mg. </p>
         </li>
 
-        <li>
+       <li>
             <p> <b>Protein:</b> @RecipeViewed.Protein mg. </p>
         </li>
 
@@ -64,7 +62,10 @@
     </ul>
 }
 
+
+
 @code {
+
     [Parameter]
     public string RecipeId { get; set; } = "default value";
 
@@ -93,5 +94,4 @@
         }
 
     }
-
 }
