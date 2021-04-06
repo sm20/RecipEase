@@ -6,7 +6,7 @@
 @attribute [Authorize]
 @inject HttpClient Http
 
-@if (RecipeViewed != null)
+@if (RecipeViewed != null && uses != null)
 {
     <h1>@RecipeViewed.Name</h1>
 
@@ -18,24 +18,43 @@
 
     <h2>Ingredients</h2>
     <ul class="list-group list-group-flush mb-4">
-        @for (var i = 0; i < 10; i++)
+        @foreach (var item in uses)
         {
             <li class="list-group-item d-flex justify-content-between align-items-center">
-                Ingredient #@i
-                <span class="text-black-50">@i @(i % 2 == 0 ? "cups" : "g")</span>
-                <span class="badge badge-primary badge-pill">@(i % 2 == 0 ? "Rare" : "Common")</span>
-                <button class="btn btn-outline-success">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-                        class="bi bi-cart-plus-fill" viewBox="0 0 16 16">
-                        <path
-                            d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1H.5zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM9 5.5V7h1.5a.5.5 0 0 1 0 1H9v1.5a.5.5 0 0 1-1 0V8H6.5a.5.5 0 0 1 0-1H8V5.5a.5.5 0 0 1 1 0z" />
-                    </svg>
-                </button>
+                @item.IngrName
+                <span class="text-black-50">@item.Quantity @item.UnitName</span>
+                <span class="text-black-50">@ingr[item].Rarity</span>
+                <AddButton></AddButton>
             </li>
         }
     </ul>
 
     <h2>Nutrition</h2>
+    <ul>
+        <li>
+            <p> <b>Calories:</b> @RecipeViewed.Calories mg. </p>
+        </li>
+
+        <li>
+            <p> <b>Carbohydrates:</b> @RecipeViewed.Carbs mg. </p>
+        </li>
+
+        <li>
+            <p> <b>Protein:</b> @RecipeViewed.Protein mg. </p>
+        </li>
+
+        <li>
+            <p> <b>Sodium:</b> @RecipeViewed.Sodium mg. </p>
+        </li>
+
+        <li>
+            <p> <b>Fat:</b> @RecipeViewed.Fat mg. </p>
+        </li>
+
+        <li>
+            <p> <b>Cholesterol:</b> @RecipeViewed.Cholesterol mg. </p>
+        </li>
+    </ul>
 }
 
 @code {
@@ -44,16 +63,29 @@
 
     public ApiRecipe RecipeViewed { get; set; }
 
+    public IEnumerable<ApiUses> uses { get; set; }
+
+    public IDictionary<ApiUses, ApiIngredient> ingr { get; set; }
+
+
 
     protected override async Task OnInitializedAsync()
     {
-
+        ingr = new Dictionary<ApiUses, ApiIngredient>();
 
         try
         {
             String path = $"api/Recipe/{RecipeId}";
             RecipeViewed = await Http.GetFromJsonAsync<ApiRecipe>(path);
+            uses = await Http.GetFromJsonAsync<IEnumerable<ApiUses>>($"api/Uses/{RecipeId}");
+            foreach (ApiUses a in uses)
+            {
+                ApiIngredient i = await Http.GetFromJsonAsync<ApiIngredient>($"api/Ingr/{a.IngrName}");
+                System.Console.WriteLine(i.GetType());
+                ingr.Add(a, i);
+            }
         }
+
         catch (AccessTokenNotAvailableException exception)
         {
             exception.Redirect();
