@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,10 +18,12 @@ namespace RecipEase.Server.Controllers
     public class RecipeInCollectionController : ControllerBase
     {
         private readonly RecipEaseContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public RecipeInCollectionController(RecipEaseContext context)
+        public RecipeInCollectionController(RecipEaseContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
@@ -41,7 +44,6 @@ namespace RecipEase.Server.Controllers
         /// <param name="userId">The userId of the customer who owns the collections to be retrieved.</param>
         /// <param name="collectionTitle">The title of the collection whose recipes should be retrieved.</param>
         [HttpGet]
-        [Consumes("application/json")]
         public async Task<ActionResult<IEnumerable<ApiRecipeInCollection>>> GetRecipeInCollection(string userId, string collectionTitle)
         {
             var query = from c in _context.RecipeInCollection
@@ -119,16 +121,26 @@ namespace RecipEase.Server.Controllers
         /// collection and recipe keys.
         ///
         /// </remarks>
+        /// <param name="recipeId">The recipe to remove from the collection.</param>
+        /// <param name="collectionTitle">The collection to delete from.</param>
         [HttpDelete]
-        public async Task<IActionResult> DeleteRecipeInCollection(ApiRecipeInCollection apiRecipeInCollection)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
+        public async Task<IActionResult> DeleteRecipeInCollection(int recipeId, string collectionTitle)
         {
-            // var apiRecipeInCollection = await _context.ApiRecipeInCollection.FindAsync(id);
-            if (apiRecipeInCollection == null)
+            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var query = from c in _context.RecipeInCollection
+                where c.CollectionUserId == currentUserId && c.CollectionTitle == collectionTitle && c.RecipeId == recipeId
+                select c;
+            var recipeInCollection = await query.FirstOrDefaultAsync();
+            if (recipeInCollection == null)
             {
                 return NotFound();
             }
 
-            _context.ApiRecipeInCollection.Remove(apiRecipeInCollection);
+            _context.RecipeInCollection.Remove(recipeInCollection);
             await _context.SaveChangesAsync();
 
             return Ok();
