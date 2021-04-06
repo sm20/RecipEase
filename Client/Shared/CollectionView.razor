@@ -12,13 +12,20 @@
         @if (RecipesInCollection != null)
         {
             <div class="card-body">
-                <div class="list-group">
-                    @foreach (var recipeInCollection in RecipesInCollection)
-                    {
-                        <RecipeCard Id="@recipeInCollection.RecipeId"></RecipeCard>
-                        <TrashButton ClickHandler="GetRecipeRemoveHandler(recipeInCollection.RecipeId)"></TrashButton>
-                    }
-                </div>
+                @if (RecipesInCollection.Count == 0)
+                {
+                    @("No recipes in this collection!");
+                }
+                else
+                {
+                    <div class="list-group">
+                        @foreach (var recipeInCollection in RecipesInCollection)
+                        {
+                            <RecipeCard Id="@recipeInCollection.RecipeId"></RecipeCard>
+                            <TrashButton ClickHandler="GetRecipeRemoveHandler(recipeInCollection.RecipeId)"></TrashButton>
+                        }
+                    </div>
+                }
             </div>
         }
     </details>
