@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecipEase.Server.Data;
+using RecipEase.Shared.Models;
 using RecipEase.Shared.Models.Api;
 
 namespace RecipEase.Server.Controllers
@@ -70,17 +72,33 @@ namespace RecipEase.Server.Controllers
         ///
         /// </remarks>
         [HttpPost]
+        [Authorize]
         [Consumes("application/json")]
         public async Task<ActionResult<ApiRecipeCollection>> PostRecipeCollection(ApiRecipeCollection apiRecipeCollection)
         {
-            _context.ApiRecipeCollection.Add(apiRecipeCollection);
+            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            
+            if (currentUserId != apiRecipeCollection.UserId)
+            {
+                return Unauthorized();
+            }
+
+            var collection = new RecipeCollection
+            {
+                UserId = apiRecipeCollection.UserId,
+                Title = apiRecipeCollection.Title,
+                Description = apiRecipeCollection.Description,
+                Visibility = apiRecipeCollection.Visibility
+            };
+            _context.RecipeCollection.Add(collection);
+
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
-                if (RecipeCollectionExists(apiRecipeCollection.UserId))
+                if (RecipeCollectionExists(collection))
                 {
                     return Conflict();
                 }
@@ -116,6 +134,7 @@ namespace RecipEase.Server.Controllers
         /// </remarks>
         /// <param name="title">The title of the recipe collection to delete.</param>
         [HttpDelete]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesDefaultResponseType]
@@ -139,9 +158,9 @@ namespace RecipEase.Server.Controllers
             return Ok();
         }
 
-        private bool RecipeCollectionExists(string id)
+        private bool RecipeCollectionExists(RecipeCollection c)
         {
-            return _context.ApiRecipeCollection.Any(e => e.UserId == id);
+            return _context.RecipeCollection.Any(e => e.UserId == c.UserId && e.Title == c.Title);
         }
     }
 }

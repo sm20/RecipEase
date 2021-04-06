@@ -4,16 +4,70 @@
 
 <h2>Collections</h2>
 
+@if (_newCollection != null)
+{
+    <div class="dropdown mb-3">
+        <button
+            class="btn btn-secondary dropdown-toggle"
+            type="button"
+            id="create-collection-dropdown"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+        >
+            + Create Collection
+        </button>
+        <div
+            class="dropdown-menu"
+            aria-labelledby="create-collection-dropdown"
+        >
+            <EditForm
+                Model="@_newCollection"
+                OnValidSubmit="@HandleValidCollectionCreate"
+                class="px-4 py-3"
+            >
+
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <InputText
+                        id="title"
+                        class="form-control"
+                        @bind-Value="_newCollection.Title"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="desc">Description</label>
+                    <InputText
+                        id="desc"
+                        class="form-control"
+                        @bind-Value="_newCollection.Description"
+                    />
+                </div>
+                <div class="form-group">
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >Create</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
 @if (_collections != null)
 {
     foreach (var collection in _collections)
     {
-        <CollectionView Collection="@collection" OnDelete="@OnCollectionDelete"></CollectionView>
+        <CollectionView
+            Collection="@collection"
+            OnDelete="@OnCollectionDelete"
+        ></CollectionView>
     }
 }
 
 @code {
-
     private const string Endpoint = "api/RecipeCollection";
 
     [CascadingParameter]
@@ -21,11 +75,17 @@
 
     private List<ApiRecipeCollection> _collections;
 
+    private ApiRecipeCollection _newCollection;
+
     protected override async Task OnInitializedAsync()
     {
         var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
         if (userId != null)
         {
+            _newCollection = new (){
+                UserId = userId,
+            };
+
             var uriBuilder = new UriBuilder(Http.BaseAddress)
             {
                 Path = Endpoint,
@@ -52,4 +112,13 @@
         }
     }
 
+    private async Task HandleValidCollectionCreate()
+    {
+        var response = await Http.PostAsJsonAsync<ApiRecipeCollection>(Endpoint, _newCollection);
+        if (response.IsSuccessStatusCode)
+        {
+            var createdCollection = await response.Content.ReadFromJsonAsync<ApiRecipeCollection>();
+            _collections.Add(createdCollection);
+        }
+    }
 }
