@@ -1,8 +1,15 @@
 ﻿@page "/Recipe/{recipeId}"
 
 
-<h1>Recipe Title</h1>
+<h1>Recipe Title 
+    <CascadingValue Value="@RecipeId">
+        <RatingAvgCalculated></RatingAvgCalculated>
+    </CascadingValue>
+</h1>
 
+<RateRecipeComponent></RateRecipeComponent>
+<br>
+<br>
 <h2>Directions</h2>
 
 <p>
@@ -42,6 +49,6 @@
 @code {
 
     [Parameter]
-    public string RecipeId { get; set; }
+    public string RecipeId { get; set; } = "default value";
 
 }
