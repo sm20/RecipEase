@@ -3,7 +3,6 @@
 @using System.Net
 @using RecipEase.Client.Shared.Util
 @using RecipEase.Shared
-@inject NavigationManager NavManager
 @inject HttpClient Http
 
 <span>
@@ -22,6 +21,7 @@
 {
     [CascadingParameter]
     public string RecipeId { get; set; }
+
     
     public string ratingValue { get; set; }
     public double rating = 0;
@@ -39,8 +39,11 @@
         };
 
         //create get request from this front end to back-end api-endpoints
+
         var extractedRating = await Http.GetFromJsonAsync<List<ApiRecipeRating>>(uriBuilder.ToString());
         Console.WriteLine("ratingLen:"+extractedRating.Count() );
+
+
         //calculate average
         foreach (var item in extractedRating)
         {
