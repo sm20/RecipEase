@@ -6,20 +6,26 @@
 @using RecipEase.Client.Shared.Util
 @using RecipEase.Shared
 @using System.Security.Claims
+@inject IHttpClientFactory ClientFactory
 @inject HttpClient Http
 
+
 <div class="starRatings">
-  <RadzenRating  Disabled=@isDisabled Change=@(args => OnChange(args, "Rating with " + @numStars + " stars")) />
+  <RadzenRating  Disabled=@isDisabled Value=@currStars Change=@(args => OnChange(args, "Rating with " + @numStars + " stars")) />
 </div>
 
 @code
 {
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+    [CascadingParameter]
+    public string RecipeId { get; set; }
+
+    public string userId = null;
     private string _error = null;
     private string _success = null;
-    double ratingValue = 4.5;
     int numStars = 0;
+    int currStars = 0;
     public bool isDisabled = true;
 
 
@@ -30,21 +36,28 @@
             var authState = await AuthenticationStateTask;
             var user = authState.User;
 
-            var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
+            userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
             if (userId != null)
             {
                 if (user.Identity != null && user.Identity.IsAuthenticated)
                 {
-                    SetCurrentAccountType(user);
+                    SetComponentEnable(user);
+
+                    //Get users rating of recipe on page load
+                    var uriBuilder = new UriBuilder(Http.BaseAddress)
+                    {
+                        Path = "api/RecipeRating",
+                        Query = $"userId={userId}" + "&" + $"recipeId={RecipeId}"
+                    };
+                    var client = Auth.GetNoAuthHttpClient(ClientFactory);
+                    var extractedRating = await client.GetFromJsonAsync<List<ApiRecipeRating>>(uriBuilder.ToString());
+
+                    if(extractedRating.Count() != 0)
+                        currStars = extractedRating[0].Rating;
+                    Console.WriteLine("ratingVal:"+extractedRating[0].Rating ); 
                 }
 
-                var uriBuilder = new UriBuilder(Http.BaseAddress)
-                {
-                    Path = "api/Customer",
-                    Query = $"userId={userId}"
-                };
                 
-                //_customer = await Http.GetFromJsonAsync<ApiCustomer>(uriBuilder.ToString());
             }
         }
         catch (AccessTokenNotAvailableException e)
@@ -57,7 +70,32 @@
         }
     }
 
-    private void SetCurrentAccountType(ClaimsPrincipal user)
+    private async void GetResponseToRequest(String path,String query,String type)
+    {
+        var uriBuilder = new UriBuilder(Http.BaseAddress)
+        {
+            Path = path,
+            Query = query
+        };
+        if(type == "POST")
+        {
+            var client = Auth.GetNoAuthHttpClient(ClientFactory);
+            var extractedRating = await client.GetFromJsonAsync<List<ApiRecipeRating>>(uriBuilder.ToString());
+            Console.WriteLine("ratingVal:"+extractedRating[0].Rating );
+            numStars= extractedRating[0].Rating;
+        }
+        else if(type == "PUT")
+        {
+
+        }
+        else if(type == "DELETE")
+        {
+
+        }
+        //_customer = await Http.GetFromJsonAsync<ApiCustomer>(uriBuilder.ToString());
+    }
+
+    private void SetComponentEnable(ClaimsPrincipal user)
     {
         if (user.IsInRole(Role.Customer.ToString()))
         {
@@ -66,17 +104,24 @@
     }
 
     void OnChange(int value, string name)
-    {
+    {//value is new 'args' value
+        currStars = value;  //update num of stars showing
         if (value == 0)
         {
             //rating removed by user, delete the users rating in the database
+            //GetResponseToRequest("api/RecipeRating", $"userId={userId}" + "&" + $"recipeId={RecipeId}","DELETE");
+
         }
         else
         {
-            //update users rating in the database
+            //create users rating in the database if user doesn't exist in ratings table
+            //GetResponseToRequest("api/RecipeRating", $"userId={userId}" + "&" + $"recipeId={RecipeId}","POST");
+
+            //or update the user if their rating already exists
+            //GetResponseToRequest("api/RecipeRating", $"userId={userId}" + "&" + $"recipeId={RecipeId}","PUT");
         }
 
-        //debug
+        //debug- name already passed in at this point and cant be changed by next line
         numStars = value;
         Console.WriteLine($"{name} value changed to {value}");
     }
