@@ -5,6 +5,7 @@
 @using System.Net
 @using RecipEase.Client.Shared.Util
 @using RecipEase.Shared
+@using System.Security.Claims
 @inject HttpClient Http
 
 <div class="starRatings">
@@ -26,10 +27,17 @@
     {
         try
         {
+            var authState = await AuthenticationStateTask;
+            var user = authState.User;
+
             var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
             if (userId != null)
             {
-                isDisabled = false;
+                if (user.Identity != null && user.Identity.IsAuthenticated)
+                {
+                    SetCurrentAccountType(user);
+                }
+
                 var uriBuilder = new UriBuilder(Http.BaseAddress)
                 {
                     Path = "api/Customer",
@@ -48,6 +56,15 @@
             _error = "An error occurred loading your account.";
         }
     }
+
+    private void SetCurrentAccountType(ClaimsPrincipal user)
+    {
+        if (user.IsInRole(Role.Customer.ToString()))
+        {
+            isDisabled = false;
+        }
+    }
+
     void OnChange(int value, string name)
     {
         if (value == 0)
