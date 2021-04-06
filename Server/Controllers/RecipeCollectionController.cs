@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,10 +18,12 @@ namespace RecipEase.Server.Controllers
     public class RecipeCollectionController : ControllerBase
     {
         private readonly RecipEaseContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public RecipeCollectionController(RecipEaseContext context)
+        public RecipeCollectionController(RecipEaseContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
@@ -112,16 +115,25 @@ namespace RecipEase.Server.Controllers
         ///
         /// </remarks>
         /// <param name="title">The title of the recipe collection to delete.</param>
-        [HttpDelete("{title}")]
+        [HttpDelete]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
         public async Task<IActionResult> DeleteRecipeCollection(string title)
         {
-            var apiRecipeCollection = await _context.ApiRecipeCollection.FindAsync(title);
-            if (apiRecipeCollection == null)
+            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var query = from c in _context.RecipeCollection
+                where c.UserId == currentUserId && c.Title == title
+                select c;
+            var recipeCollection = await query.FirstOrDefaultAsync();
+            
+            if (recipeCollection == null)
             {
                 return NotFound();
             }
 
-            _context.ApiRecipeCollection.Remove(apiRecipeCollection);
+            _context.RecipeCollection.Remove(recipeCollection);
             await _context.SaveChangesAsync();
 
             return Ok();

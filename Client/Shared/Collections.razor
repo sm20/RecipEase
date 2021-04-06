@@ -8,11 +8,13 @@
 {
     foreach (var collection in _collections)
     {
-        <CollectionView Collection="@collection"></CollectionView>
+        <CollectionView Collection="@collection" OnDelete="@OnCollectionDelete"></CollectionView>
     }
 }
 
 @code {
+
+    private const string Endpoint = "api/RecipeCollection";
 
     [CascadingParameter]
     public Task<AuthenticationState> AuthenticationStateTask { get; set; }
@@ -26,11 +28,27 @@
         {
             var uriBuilder = new UriBuilder(Http.BaseAddress)
             {
-                Path = "api/RecipeCollection",
+                Path = Endpoint,
                 Query = $"userId={userId}"
             };
 
             _collections = await Http.GetFromJsonAsync<List<ApiRecipeCollection>>(uriBuilder.ToString());
+        }
+    }
+
+    private async Task OnCollectionDelete(ApiRecipeCollection collection)
+    {
+        var uriBuilder = new UriBuilder(Http.BaseAddress)
+        {
+            Path = Endpoint,
+            Query = $"title={collection.Title}"
+        };
+
+        var response = await Http.DeleteAsync(uriBuilder.ToString());
+        if (response.IsSuccessStatusCode)
+        {
+            _collections.Remove(collection);
+            StateHasChanged();
         }
     }
 

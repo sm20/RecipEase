@@ -7,7 +7,7 @@
     <details class="card mb-4">
         <summary class="card-header d-flex align-items-center justify-content-between" @onclick="OnCollectionExpand">
             <span style="text-decoration: underline">@Collection.Title</span>
-            <TrashButton></TrashButton>
+            <TrashButton ClickHandler="HandleDelete"></TrashButton>
         </summary>
         @if (RecipesInCollection != null)
         {
@@ -30,6 +30,10 @@
 
     [Parameter]
     public ApiRecipeCollection Collection { get; set; }
+
+    /// Called when the delete button is clicked for this collection, gets passed the collection.
+    [Parameter]
+    public Func<ApiRecipeCollection, Task> OnDelete { get; set; }
 
     private List<ApiRecipeInCollection> RecipesInCollection { get; set; }
 
@@ -55,4 +59,8 @@
         }
     }
 
+    private void HandleDelete()
+    {
+        OnDelete(Collection);
+    }
 }
