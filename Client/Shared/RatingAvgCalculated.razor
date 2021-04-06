@@ -3,6 +3,7 @@
 @using System.Net
 @using RecipEase.Client.Shared.Util
 @using RecipEase.Shared
+@inject NavigationManager NavManager
 @inject HttpClient Http
 
 <span>
@@ -21,15 +22,14 @@
 {
     [CascadingParameter]
     public string RecipeId { get; set; }
-
+    
     public string ratingValue { get; set; }
-    public double rating = 4.1;
-    public double divisor = 2.33;
-
+    public double rating = 0;
+    public double divisor = 0;
+    
 
     protected override async Task OnInitializedAsync()
     {
-        Console.WriteLine(RecipeId);
         
         //build the API request using the base address and queries
         var uriBuilder = new UriBuilder(Http.BaseAddress)
@@ -39,8 +39,8 @@
         };
 
         //create get request from this front end to back-end api-endpoints
-        var extractedRating = await Http.GetFromJsonAsync<List<ApiRecipeRating>>("api/RecipeRating");
-        
+        var extractedRating = await Http.GetFromJsonAsync<List<ApiRecipeRating>>(uriBuilder.ToString());
+        Console.WriteLine("ratingLen:"+extractedRating.Count() );
         //calculate average
         foreach (var item in extractedRating)
         {
