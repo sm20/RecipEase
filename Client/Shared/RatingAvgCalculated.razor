@@ -4,6 +4,7 @@
 @using RecipEase.Client.Shared.Util
 @using RecipEase.Shared
 @inject HttpClient Http
+@inject IHttpClientFactory ClientFactory
 
 <span>
     <small>
@@ -39,8 +40,9 @@
         };
 
         //create get request from this front end to back-end api-endpoints
-
-        var extractedRating = await Http.GetFromJsonAsync<List<ApiRecipeRating>>(uriBuilder.ToString());
+        
+        var client = Auth.GetNoAuthHttpClient(ClientFactory);
+        var extractedRating = await client.GetFromJsonAsync<List<ApiRecipeRating>>(uriBuilder.ToString());
         Console.WriteLine("ratingLen:"+extractedRating.Count() );
 
 
@@ -59,6 +61,4 @@
 
         ratingValue = rating.ToString("0.00");
     }
-    
-    
 }
