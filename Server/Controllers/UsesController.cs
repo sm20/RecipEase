@@ -58,14 +58,13 @@ namespace RecipEase.Server.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<IEnumerable<ApiUses>>> GetApiUses(int id)
         {
-            var apiUses = await _context.ApiUses.ToListAsync();
+            var uses = await _context.Uses.Where(u => u.RecipeId.Equals(id)).Select(u => u.ToApiUses()).ToListAsync();
 
-            if (apiUses == null)
+            if (uses == null)
             {
                 return NotFound();
             }
-
-            return apiUses;
+            return uses;
         }
 
         /// <summary>

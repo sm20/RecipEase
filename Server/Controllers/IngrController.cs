@@ -60,7 +60,7 @@ namespace RecipEase.Server.Controllers
         /// 
         /// </remarks>
         [HttpGet("{id}")]
-        public async Task<ActionResult<Ingredient>> GetIngredient(string id)
+        public async Task<ActionResult<ApiIngredient>> GetIngredient(string id)
         {
             var apiIngredient = await _context.Ingredient.FindAsync(id);
 
@@ -68,8 +68,7 @@ namespace RecipEase.Server.Controllers
             {
                 return NotFound();
             }
-
-            return apiIngredient;
+            return apiIngredient.ToApiIngredient();
         }
 
 
