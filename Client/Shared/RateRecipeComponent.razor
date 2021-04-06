@@ -1,12 +1,53 @@
 
+@using RecipEase.Shared.Models
+@using RecipEase.Shared.Models.Api
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Net
+@using RecipEase.Client.Shared.Util
+@using RecipEase.Shared
+@inject HttpClient Http
+
 <div class="starRatings">
-  <RadzenRating Change=@(args => OnChange(args, "Rating with " + @numStars + " stars")) />
+  <RadzenRating  Disabled=@isDisabled Change=@(args => OnChange(args, "Rating with " + @numStars + " stars")) />
 </div>
 
 @code
 {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+    private string _error = null;
+    private string _success = null;
     double ratingValue = 4.5;
     int numStars = 0;
+    public bool isDisabled = true;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
+            if (userId != null)
+            {
+                isDisabled = false;
+                var uriBuilder = new UriBuilder(Http.BaseAddress)
+                {
+                    Path = "api/Customer",
+                    Query = $"userId={userId}"
+                };
+                
+                //_customer = await Http.GetFromJsonAsync<ApiCustomer>(uriBuilder.ToString());
+            }
+        }
+        catch (AccessTokenNotAvailableException e)
+        {
+            e.Redirect();
+        }
+        catch (HttpRequestException e)
+        {
+            _error = "An error occurred loading your account.";
+        }
+    }
     void OnChange(int value, string name)
     {
         if (value == 0)
