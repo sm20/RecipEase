@@ -136,6 +136,7 @@ namespace RecipEase.Server.Controllers
         ///<param name="RecipeId">The Id for the Recipe whose rating will be updated.</param>
         ///<param name="apiObj">The rating to update for the specified recipe and user.</param>
         [HttpPut]
+        [Consumes("application/json")]
         public async Task<IActionResult> PutRecipeRating(string userId, int RecipeId, ApiRecipeRating apiObj)
         {
             //convert input to database object
@@ -164,7 +165,55 @@ namespace RecipEase.Server.Controllers
 
             return NoContent();
         }
+/*
+        /// <summary>
+        /// Delete an existing rating entry
+        /// </summary>
+        /// <remarks>
+        ///
+        /// Delete a rating entry from the RecipeRating relation,
+        /// if the entry exists in the RecipeRating relation of the database.
+        /// 
+        /// The authenticated user must be the supplier of the item to be deleted.
+        /// 
+        /// A Delete operation to delete a Rating entry is performed. The query involves a 'select *'
+        /// and a 'where' on the userId and recipeId
+        /// </remarks>
+        ///<param name="apiSupplies">The entry to delete.</param>
+        [HttpDelete]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
+        public async Task<IActionResult> DeleteRecipeRating(ApiSupplies apiSupplies)
+        {
+            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (apiSupplies.UserId != currentUserId)
+            {
+                return Unauthorized();
+            }
 
+            var deletedSupplies = Supplies.FromApiSupplies(apiSupplies);
+
+            _context.Entry(deletedSupplies).State = EntityState.Deleted;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!SuppliesExists(deletedSupplies))
+                {
+                    return NotFound();
+                }
+
+                throw;
+            }
+
+            return NoContent();
+        }
+*/
         private bool RecipeRatingExists(RecipeRating r)
         {
             return _context.RecipeRating.Any(e => e.UserId == r.UserId && e.RecipeId == r.RecipeId);
