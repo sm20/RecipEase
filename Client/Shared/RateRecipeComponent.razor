@@ -73,14 +73,14 @@
         }
     }
 
-    private async void GetResponseToRequest(String path,String query,String type)
+    private async void GetResponseToRequest(String path,String query,String requestType)
     {
         var uriBuilder = new UriBuilder(Http.BaseAddress)
         {
             Path = path,
             Query = query
         };
-        if(type == "POST")
+        if(requestType == "POST")
         {
 
             ApiRecipeRating newApiSupplies = new ApiRecipeRating()
@@ -95,11 +95,21 @@
                 Console.WriteLine("Could not add rating.");
             }
         }
-        else if(type == "PUT")
+        else if(requestType == "PUT")
         {
-
+            ApiRecipeRating obj = new ApiRecipeRating()
+            {
+                Rating = currStars,
+                UserId = "johnson",
+                RecipeId = 0
+            };
+            var response = await Http.PutAsJsonAsync(uriBuilder.ToString(), obj);
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Could not update rating.");
+            }
         }
-        else if(type == "DELETE")
+        else if(requestType == "DELETE")
         {
 
         }
@@ -116,24 +126,32 @@
 
     void OnChange(int value, string name)
     {//value is new 'args' value
-        currStars = value;  //update num of stars showing
-        if (value == 0)
+        
+        if (value == 0) //user pressed cancel on the rating
         {
             //rating removed by user, delete the users rating in the database
             //GetResponseToRequest("api/RecipeRating", $"userId={userId}" + "&" + $"recipeId={RecipeId}","DELETE");
 
         }
-        else
+        else if(currStars == 0) //no user rating yet, POST op available
         {
 
             //create users rating in the database if user doesn't exist in ratings table
+            currStars = value;
             GetResponseToRequest("api/RecipeRating","","POST");
 
-            //or update the user if their rating already exists
+            
             //GetResponseToRequest("api/RecipeRating", $"userId={userId}" + "&" + $"recipeId={RecipeId}","PUT");
+        } //         POST             NO CHANGE
+        else if(currStars != 0 && currStars != value)
+        {
+            //update the user's rating if their rating already exists
+            currStars = value;
+            GetResponseToRequest("api/RecipeRating", $"userId={userId}" +
+                "&" + $"recipeId={RecipeId}"/* + "&" + $"apiObj={currStars}"*/,"PUT");
         }
+        currStars = value;  //update num of stars showing
 
-        //debug- name already passed in at this point and cant be changed by next line
         numStars = value;
         Console.WriteLine($"{name} value changed to {value}");
     }

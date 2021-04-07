@@ -118,6 +118,53 @@ namespace RecipEase.Server.Controllers
             return CreatedAtAction("GetRecipeRating", new { id = apiRecipeRating.UserId }, apiRecipeRating);
         }
 
+
+        /// <summary>
+        /// Update the information of an existing rating entry
+        /// </summary>
+        /// <remarks>
+        ///
+        /// Updates the rating information of an existing rating entry
+        /// in the RecipeRating table of the database.
+        /// The authenticated user must be the supplier whose ingredient is to be updated.
+        ///
+        /// An Update operation is used to update the rating entry in the database, if
+        /// the entry exists. The query to find the entry relies on a 'select *' and 'where'
+        /// using the recipeId and userId foreign keys.
+        /// </remarks>
+        ///<param name="userId">The Id of the user who is updating the rating.</param>
+        ///<param name="RecipeId">The Id for the Recipe whose rating will be updated.</param>
+        ///<param name="apiObj">The rating to update for the specified recipe and user.</param>
+        [HttpPut]
+        public async Task<IActionResult> PutRecipeRating(string userId, int RecipeId, ApiRecipeRating apiObj)
+        {
+            //convert input to database object
+            var updatedRating = new RecipeRating()
+            {
+                UserId = userId,
+                RecipeId = RecipeId,
+                Rating = apiObj.Rating
+            };
+            //notifier to entity framework core
+            _context.Entry(updatedRating).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!RecipeRatingExists(updatedRating))
+                {
+                    return NotFound();
+                }
+
+                throw;
+            }
+
+            return NoContent();
+        }
+
         private bool RecipeRatingExists(RecipeRating r)
         {
             return _context.RecipeRating.Any(e => e.UserId == r.UserId && e.RecipeId == r.RecipeId);
