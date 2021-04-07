@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecipEase.Server.Data;
+using RecipEase.Shared.Models;
 using RecipEase.Shared.Models.Api;
 
 namespace RecipEase.Server.Controllers
@@ -95,14 +96,16 @@ namespace RecipEase.Server.Controllers
         [Consumes("application/json")]
         public async Task<ActionResult<ApiRecipeRating>> PostRecipeRating(ApiRecipeRating apiRecipeRating)
         {
-            _context.ApiRecipeRating.Add(apiRecipeRating);
+            //convert api model to regular model
+            var recipeRating = RecipeRating.FromApiToRecipeRating(apiRecipeRating);
+            await _context.RecipeRating.AddAsync(recipeRating);
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
-                if (ApiRecipeRatingExists(apiRecipeRating.UserId))
+                if (RecipeRatingExists(recipeRating))
                 {
                     return Conflict();
                 }
@@ -112,12 +115,102 @@ namespace RecipEase.Server.Controllers
                 }
             }
 
-            return CreatedAtAction("GetApiRecipeRating", new { id = apiRecipeRating.UserId }, apiRecipeRating);
+            return CreatedAtAction("GetRecipeRating", new { id = apiRecipeRating.UserId }, apiRecipeRating);
         }
 
-        private bool ApiRecipeRatingExists(string id)
+
+        /// <summary>
+        /// Update the information of an existing rating entry
+        /// </summary>
+        /// <remarks>
+        ///
+        /// Updates the rating information of an existing rating entry
+        /// in the RecipeRating table of the database.
+        /// The authenticated user must be the supplier whose ingredient is to be updated.
+        ///
+        /// An Update operation is used to update the rating entry in the database, if
+        /// the entry exists. The query to find the entry relies on a 'select *' and 'where'
+        /// using the recipeId and userId foreign keys.
+        /// </remarks>
+        ///<param name="userId">The Id of the user who is updating the rating.</param>
+        ///<param name="RecipeId">The Id for the Recipe whose rating will be updated.</param>
+        ///<param name="apiObj">The rating to update for the specified recipe and user.</param>
+        [HttpPut]
+        [Consumes("application/json")]
+        public async Task<IActionResult> PutRecipeRating(string userId, int RecipeId, ApiRecipeRating apiObj)
         {
-            return _context.ApiRecipeRating.Any(e => e.UserId == id);
+            //convert input to database object
+            var updatedRating = new RecipeRating()
+            {
+                UserId = userId,
+                RecipeId = RecipeId,
+                Rating = apiObj.Rating
+            };
+            //notifier to entity framework core
+            _context.Entry(updatedRating).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!RecipeRatingExists(updatedRating))
+                {
+                    return NotFound();
+                }
+
+                throw;
+            }
+
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Delete an existing rating entry
+        /// </summary>
+        /// <remarks>
+        ///
+        /// Delete a rating entry from the RecipeRating relation,
+        /// if the entry exists in the RecipeRating relation of the database.
+        /// 
+        /// The authenticated user must be the supplier of the item to be deleted.
+        /// 
+        /// A Delete operation to delete a Rating entry is performed. The query involves a 'select *'
+        /// and a 'where' on the userId and recipeId
+        /// </remarks>
+        ///<param name="apiObj">The entry to delete.</param>
+        [HttpDelete]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
+        public async Task<IActionResult> DeleteRecipeRating(ApiRecipeRating apiObj)
+        {
+            var ratingToDelete = RecipeRating.FromApiToRecipeRating(apiObj);
+
+            _context.Entry(ratingToDelete).State = EntityState.Deleted;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!RecipeRatingExists(ratingToDelete))
+                {
+                    return NotFound();
+                }
+
+                throw;
+            }
+
+            return NoContent();
+        }
+
+        private bool RecipeRatingExists(RecipeRating r)
+        {
+            return _context.RecipeRating.Any(e => e.UserId == r.UserId && e.RecipeId == r.RecipeId);
         }
     }
 }
