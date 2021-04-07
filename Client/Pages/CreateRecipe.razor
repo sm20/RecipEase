@@ -2,41 +2,53 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using RecipEase.Client.Shared.Util
+@using System;
 @attribute [Authorize]
+@inject NavigationManager Navigation
 @inject HttpClient Http
+@using Newtonsoft.Json
+
 
 @page "/CreateRecipe"
 
-@if (_error != null)
+
+@if (true)
 {
-    <div class="container alert-danger">@_error</div>
-}
-@if (_success != null)
-{
-    <div class="container alert-success">@_success</div>
-}
-@if (_customer != null)
-{
+    @if (_error != null)
+    {
+        <div class="container alert-danger">@_error</div>
+    }
+    @if (_success != null)
+    {
+        <div class="container alert-success">@_success</div>
+    }
 
 
-    <EditForm Model="@_rec" OnValidSubmit="@HandleValidSubmit" class="w-50">>
+    <EditForm Model="@_rec" OnValidSubmit="@HandleValidSubmit" class="w-50">
         <h2>Create Recipe</h2>
         <p> Recipe With Ease </p>
-        <label for="name">Name</label>
-        <InputText id="name" class="form-control" @bind-Value="_rec.Name" />
-        <br>
+        <InputText id="name" placeholder="Recipe's Title Goes Here!" class="form-control" @bind-Value="_rec.Name" />
+        <br />
         <button type="submit" class="btn btn-primary btn-lg btn-block">Let’s taco ‘bout it.</button>
     </EditForm>
 }
 
 
 @code {
-    private ApiRecipe _rec = null;
+    private ApiRecipe _rec = new ApiRecipe()
+            {
+                Steps = "",
+                Cholesterol = 0,
+                Fat = 0,
+                Sodium = 0,
+                Protein = 0,
+                Carbs = 0,
+                Calories = 0,
+            };
+    [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; }
-
     private string _error = null;
     private string _success = null;
-
     private ApiCustomer _customer = null;
 
 
@@ -44,16 +56,18 @@
     {
         try
         {
-            var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
+            string userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
             if (userId != null)
             {
+                
                 var uriBuilder = new UriBuilder(Http.BaseAddress)
                 {
                     Path = "api/Customer",
                     Query = $"userId={userId}"
                 };
-
+                
                 _customer = await Http.GetFromJsonAsync<ApiCustomer>(uriBuilder.ToString());
+                    _rec.AuthorId = _customer.UserId;
             }
         }
         catch (AccessTokenNotAvailableException e)
@@ -70,7 +84,7 @@
     {
         if (!string.IsNullOrEmpty(_rec?.Name))
         {
-            var response = await Http.PostAsJsonAsync($"api/Ingr/{_rec.Name}", _rec);
+            var response = await Http.PostAsJsonAsync($"api/Recipe/", _rec);
             if (!response.IsSuccessStatusCode)
             {
                 _error = "An error occurred updating your account";
@@ -78,6 +92,10 @@
             else
             {
                 _success = "Account updated!";
+                string a = response.Content.ReadAsStringAsync().Result;
+                var createdCollection = await response.Content.ReadFromJsonAsync<ApiRecipe>();
+                Navigation.NavigateTo($"/EditRecipe/{createdCollection.Id}");
+
             }
         }
     }

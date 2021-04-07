@@ -7,7 +7,7 @@
 @if (RecipeViewed != null && uses != null)
 {
 
-    <h1>Recipe Title
+    <h1>@RecipeViewed.Name
         <CascadingValue Value="@RecipeId">
             <RatingAvgCalculated></RatingAvgCalculated>
         </CascadingValue>
