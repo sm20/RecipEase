@@ -12,7 +12,7 @@
                 class="navbar-toggler"
                 type="button"
                 data-bs-toggle="collapse"
-                data-bs-target="#navbarSupportedContent"
+                data-bs-target="#navbarSupportedContentn
                 aria-controls="navbarSupportedContent"
                 aria-expanded="false"
                 aria-label="Toggle navigation">
@@ -48,8 +48,18 @@
         </div>
     </nav>
 </header>
+<style>
+    #app {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
 
-<div class="container">
+    #app-container {
+        flex-grow: 1;
+    }
+</style>
+<div class="container" id="app-container">
     <main
         role="main"
         class="pb-3">
@@ -59,6 +69,6 @@
 
 <footer class="border-top footer text-muted">
     <div class="container py-3">
-        &copy; 2021 - RecipeEase
+        &copy; 2021 - RecipEase
     </div>
 </footer>

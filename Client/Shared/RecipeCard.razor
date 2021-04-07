@@ -1,14 +1,52 @@
-﻿<a href="/Recipe/@Id" class="list-group-item list-group-item-action flex-column align-items-start">
-    <div class="d-flex w-100 justify-content-between">
-        <h5 class="mb-1">Recipe Title</h5>
-        <RatingAvgCalculated RecipeId="@Id"></RatingAvgCalculated>
-    </div>
-    <p class="mb-1">Recipe description talking about the stuff in the recipe and it goes on...</p>
-    <small>By: John Brown</small>
-</a>
+@using RecipEase.Shared.Models.Api
+@using Util
+@inject IHttpClientFactory ClientFactory
+
+@if (Recipe != null)
+{
+    <a
+        href="/Recipe/@Recipe.Id"
+        class="list-group-item list-group-item-action flex-column align-items-start"
+    >
+        <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">@Recipe.Name</h5>
+            <RatingAvgCalculated RecipeId="@Id"></RatingAvgCalculated>
+        </div>
+        <p
+            class="mb-1"
+            style="max-width: 500px; overflow: hidden; text-overflow: ellipsis;"
+        >@Recipe.Steps</p>
+        @if (Author != null)
+        {
+            <small>By: @Author.CustomerName</small>
+        }
+    </a>
+}
 
 @code
 {
     [Parameter]
     public int Id { get; set; }
+
+    private ApiRecipe Recipe { get; set; }
+
+    private ApiCustomer Author { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var client = Auth.GetNoAuthHttpClient(ClientFactory);
+        var path = $"api/Recipe/{Id}";
+        Recipe = await client.GetFromJsonAsync<ApiRecipe>(path);
+
+        if (Recipe != null && Recipe.AuthorId != null)
+        {
+            var uriBuilder = new UriBuilder(client.BaseAddress)
+            {
+                Path = "api/Customer",
+                Query = $"userId={Recipe.AuthorId}"
+            };
+
+            Author = await client.GetFromJsonAsync<ApiCustomer>(uriBuilder.ToString());
+        }
+    }
 }
