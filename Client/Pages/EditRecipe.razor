@@ -1,0 +1,94 @@
+@using RecipEase.Shared.Models
+@using RecipEase.Shared.Models.Api
+@using Meal = RecipEase.Shared.Models.Meal
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Net
+@using RecipEase.Client.Shared.Util
+@using RecipEase.Shared
+@inject HttpClient Http
+
+
+@page "/EditRecipe/{recipeId}"
+
+<h2>Edit Recipe</h2>
+
+@if (_error != null)
+{
+    <div class="container alert-danger">@_error</div>
+}
+@if (_success != null)
+{
+    <div class="container alert-success">@_success</div>
+}
+@if (_customer != null)
+{
+    @* <EditForm
+\        OnValidSubmit="@HandleValidSubmit"
+        class="w-50">
+
+        <DataAnnotationsValidator/>
+        <ValidationSummary/>
+
+        <div class="form-group">
+            
+        </div>
+        <div class="form-group">
+            
+        </div>
+        <div class="form-group">
+            
+        </div>
+        <div class="form-group">
+            
+        </div>
+        <div class="form-group">
+        </div>
+        <p></p>
+
+    </EditForm> *@
+}
+
+@code {
+
+    [Parameter]
+    public string RecipeId {get;set;}  = "default value";
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    private ApiCustomer _customer = null;
+    private string _error = null;
+    private string _success = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
+            if (userId != null)
+            {
+                var uriBuilder = new UriBuilder(Http.BaseAddress)
+                {
+                    Path = "api/Customer",
+                    Query = $"userId={userId}"
+                };
+                
+                _customer = await Http.GetFromJsonAsync<ApiCustomer>(uriBuilder.ToString());
+            }
+        }
+        catch (AccessTokenNotAvailableException e)
+        {
+            e.Redirect();
+        }
+        catch (HttpRequestException e)
+        {
+            _error = "An error occurred loading your account.";
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        
+    }
+
+}

@@ -186,8 +186,9 @@ namespace RecipEase.Server.Controllers
         {
             _context.Recipe.Add(apiRecipe);
             await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetApiRecipe", new { id = apiRecipe.Id }, apiRecipe);
+            int id = apiRecipe.Id;
+            Console.WriteLine(id);
+            return CreatedAtAction("GetRecipes", new { id = apiRecipe.Id }, apiRecipe);
         }
 
         /// <summary>
