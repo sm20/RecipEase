@@ -4,12 +4,10 @@
 @using RecipEase.Client.Shared.Util
 @inject IHttpClientFactory ClientFactory
 
-
 @if (RecipeViewed != null && uses != null)
 {
-    <h1>@RecipeViewed.Name</h1>
 
-    <h1>Recipe Title
+    <h1>@RecipeViewed.Name
         <CascadingValue Value="@RecipeId">
             <RatingAvgCalculated></RatingAvgCalculated>
         </CascadingValue>
@@ -50,7 +48,7 @@
         <li>
             <p> <b>Protein:</b> @RecipeViewed.Protein mg. </p>
         </li>
-
+        
         <li>
             <p> <b>Sodium:</b> @RecipeViewed.Sodium mg. </p>
         </li>
@@ -64,6 +62,8 @@
         </li>
     </ul>
 }
+
+
 
 @code {
 
@@ -98,5 +98,4 @@
         }
 
     }
-
 }
