@@ -103,6 +103,7 @@
                 UserId = "johnson",
                 RecipeId = 0
             };
+            //must take in object as arg2 & obj attributes cant have any null values
             var response = await Http.PutAsJsonAsync(uriBuilder.ToString(), obj);
             if (!response.IsSuccessStatusCode)
             {
@@ -111,9 +112,30 @@
         }
         else if(requestType == "DELETE")
         {
+            ApiRecipeRating obj = new ApiRecipeRating()
+            {
+                UserId = userId,
+                RecipeId = Int32.Parse(RecipeId),
+                Rating = 2 //placeholder
+            };
+            
+            uriBuilder = new UriBuilder(Http.BaseAddress)
+            {
+                Path = path
+            };
+            var request = new HttpRequestMessage
+            {
+                Content = JsonContent.Create(obj),
+                Method = HttpMethod.Delete,
+                RequestUri = uriBuilder.Uri
+            };
+            var response = await Http.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Could not delete rating.");
+            }
 
         }
-        //_customer = await Http.GetFromJsonAsync<ApiCustomer>(uriBuilder.ToString());
     }
 
     private void SetComponentEnable(ClaimsPrincipal user)
@@ -130,25 +152,22 @@
         if (value == 0) //user pressed cancel on the rating
         {
             //rating removed by user, delete the users rating in the database
-            //GetResponseToRequest("api/RecipeRating", $"userId={userId}" + "&" + $"recipeId={RecipeId}","DELETE");
+            GetResponseToRequest("api/RecipeRating", $"userId={userId}" + "&" + $"recipeId={RecipeId}","DELETE");
 
         }
         else if(currStars == 0) //no user rating yet, POST op available
         {
-
             //create users rating in the database if user doesn't exist in ratings table
             currStars = value;
             GetResponseToRequest("api/RecipeRating","","POST");
 
-            
-            //GetResponseToRequest("api/RecipeRating", $"userId={userId}" + "&" + $"recipeId={RecipeId}","PUT");
         } //         POST             NO CHANGE
         else if(currStars != 0 && currStars != value)
         {
             //update the user's rating if their rating already exists
             currStars = value;
             GetResponseToRequest("api/RecipeRating", $"userId={userId}" +
-                "&" + $"recipeId={RecipeId}"/* + "&" + $"apiObj={currStars}"*/,"PUT");
+                "&" + $"recipeId={RecipeId}","PUT");
         }
         currStars = value;  //update num of stars showing
 

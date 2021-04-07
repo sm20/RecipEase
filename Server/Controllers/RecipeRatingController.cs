@@ -165,7 +165,7 @@ namespace RecipEase.Server.Controllers
 
             return NoContent();
         }
-/*
+
         /// <summary>
         /// Delete an existing rating entry
         /// </summary>
@@ -179,23 +179,17 @@ namespace RecipEase.Server.Controllers
         /// A Delete operation to delete a Rating entry is performed. The query involves a 'select *'
         /// and a 'where' on the userId and recipeId
         /// </remarks>
-        ///<param name="apiSupplies">The entry to delete.</param>
+        ///<param name="apiObj">The entry to delete.</param>
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesDefaultResponseType]
-        public async Task<IActionResult> DeleteRecipeRating(ApiSupplies apiSupplies)
+        public async Task<IActionResult> DeleteRecipeRating(ApiRecipeRating apiObj)
         {
-            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (apiSupplies.UserId != currentUserId)
-            {
-                return Unauthorized();
-            }
+            var ratingToDelete = RecipeRating.FromApiToRecipeRating(apiObj);
 
-            var deletedSupplies = Supplies.FromApiSupplies(apiSupplies);
-
-            _context.Entry(deletedSupplies).State = EntityState.Deleted;
+            _context.Entry(ratingToDelete).State = EntityState.Deleted;
 
             try
             {
@@ -203,7 +197,7 @@ namespace RecipEase.Server.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!SuppliesExists(deletedSupplies))
+                if (!RecipeRatingExists(ratingToDelete))
                 {
                     return NotFound();
                 }
@@ -213,7 +207,7 @@ namespace RecipEase.Server.Controllers
 
             return NoContent();
         }
-*/
+
         private bool RecipeRatingExists(RecipeRating r)
         {
             return _context.RecipeRating.Any(e => e.UserId == r.UserId && e.RecipeId == r.RecipeId);
