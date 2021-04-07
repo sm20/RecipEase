@@ -1,9 +1,7 @@
 ﻿<a href="/Recipe/@Id" class="list-group-item list-group-item-action flex-column align-items-start">
     <div class="d-flex w-100 justify-content-between">
         <h5 class="mb-1">Recipe Title</h5>
-        <CascadingValue Value="@Id">
-            <RatingAvgCalculated></RatingAvgCalculated>
-        </CascadingValue>
+        <RatingAvgCalculated RecipeId="@Id"></RatingAvgCalculated>
     </div>
     <p class="mb-1">Recipe description talking about the stuff in the recipe and it goes on...</p>
     <small>By: John Brown</small>
