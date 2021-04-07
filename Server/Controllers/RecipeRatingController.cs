@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecipEase.Server.Data;
+using RecipEase.Shared.Models;
 using RecipEase.Shared.Models.Api;
 
 namespace RecipEase.Server.Controllers
@@ -95,14 +96,16 @@ namespace RecipEase.Server.Controllers
         [Consumes("application/json")]
         public async Task<ActionResult<ApiRecipeRating>> PostRecipeRating(ApiRecipeRating apiRecipeRating)
         {
-            _context.ApiRecipeRating.Add(apiRecipeRating);
+            //convert api model to regular model
+            var recipeRating = RecipeRating.FromApiToRecipeRating(apiRecipeRating);
+            await _context.RecipeRating.AddAsync(recipeRating);
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
-                if (ApiRecipeRatingExists(apiRecipeRating.UserId))
+                if (RecipeRatingExists(recipeRating))
                 {
                     return Conflict();
                 }
@@ -112,12 +115,12 @@ namespace RecipEase.Server.Controllers
                 }
             }
 
-            return CreatedAtAction("GetApiRecipeRating", new { id = apiRecipeRating.UserId }, apiRecipeRating);
+            return CreatedAtAction("GetRecipeRating", new { id = apiRecipeRating.UserId }, apiRecipeRating);
         }
 
-        private bool ApiRecipeRatingExists(string id)
+        private bool RecipeRatingExists(RecipeRating r)
         {
-            return _context.ApiRecipeRating.Any(e => e.UserId == id);
+            return _context.RecipeRating.Any(e => e.UserId == r.UserId && e.RecipeId == r.RecipeId);
         }
     }
 }

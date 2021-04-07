@@ -53,8 +53,11 @@
                     var extractedRating = await client.GetFromJsonAsync<List<ApiRecipeRating>>(uriBuilder.ToString());
 
                     if(extractedRating.Count() != 0)
+                    {
                         currStars = extractedRating[0].Rating;
-                    Console.WriteLine("ratingVal:"+extractedRating[0].Rating ); 
+                        Console.WriteLine("ratingVal:"+extractedRating[0].Rating ); 
+                    }
+                        
                 }
 
                 
@@ -79,10 +82,18 @@
         };
         if(type == "POST")
         {
-            var client = Auth.GetNoAuthHttpClient(ClientFactory);
-            var extractedRating = await client.GetFromJsonAsync<List<ApiRecipeRating>>(uriBuilder.ToString());
-            Console.WriteLine("ratingVal:"+extractedRating[0].Rating );
-            numStars= extractedRating[0].Rating;
+
+            ApiRecipeRating newApiSupplies = new ApiRecipeRating()
+            {
+                UserId = userId,
+                RecipeId = Int32.Parse(RecipeId),
+                Rating = currStars
+            };
+            var response = await Http.PostAsJsonAsync("api/RecipeRating", newApiSupplies);
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Could not add rating.");
+            }
         }
         else if(type == "PUT")
         {
@@ -114,8 +125,9 @@
         }
         else
         {
+
             //create users rating in the database if user doesn't exist in ratings table
-            //GetResponseToRequest("api/RecipeRating", $"userId={userId}" + "&" + $"recipeId={RecipeId}","POST");
+            GetResponseToRequest("api/RecipeRating","","POST");
 
             //or update the user if their rating already exists
             //GetResponseToRequest("api/RecipeRating", $"userId={userId}" + "&" + $"recipeId={RecipeId}","PUT");
