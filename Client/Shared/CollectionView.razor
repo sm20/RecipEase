@@ -21,7 +21,7 @@
                     <div class="list-group">
                         @foreach (var recipeInCollection in RecipesInCollection)
                         {
-                            <RecipeCard Id="@recipeInCollection.RecipeId"></RecipeCard>
+                            <RecipeCard Id="@recipeInCollection.RecipeId" @key="recipeInCollection.RecipeId"></RecipeCard>
                             <TrashButton ClickHandler="GetRecipeRemoveHandler(recipeInCollection.RecipeId)"></TrashButton>
                         }
                     </div>
