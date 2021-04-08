@@ -1,0 +1,79 @@
+﻿@using RecipEase.Shared
+@using RecipEase.Client.Shared.Util
+@using RecipEase.Shared.Models.Api
+@inject HttpClient Http
+
+<AuthorizeView Roles="@Role.Customer.ToString()">
+    <div class="dropdown mb-3">
+        <button
+            @onclick="@HandleClick"
+            class="btn btn-secondary dropdown-toggle"
+            type="button"
+            id="add-to-collection-dropdown"
+            data-bs-toggle="dropdown"
+            aria-expanded="false">
+            + Add To Collection
+        </button>
+        <div
+            class="dropdown-menu"
+            aria-labelledby="add-to-collection-dropdown">
+            @if (Collections != null)
+            {
+                @foreach (var collection in Collections)
+                {
+                    <button class="dropdown-item fs-6" onclick="@GetAddHandler(collection)">
+                        @collection.Title
+                    </button>
+                }
+            }
+        </div>
+    </div>
+</AuthorizeView>
+
+@code {
+
+    [Parameter]
+    public int RecipeId { get; set; }
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    private List<ApiRecipeCollection> Collections { get; set; }
+
+    private async Task HandleClick()
+    {
+        if (Collections != null) return;
+
+        var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
+        if (userId != null)
+        {
+            var uriBuilder = new UriBuilder(Http.BaseAddress)
+            {
+                Path = "api/RecipeCollection",
+                Query = $"userId={userId}"
+            };
+            Collections = await Http.GetFromJsonAsync<List<ApiRecipeCollection>>(uriBuilder.ToString());
+        }
+    }
+
+    private EventCallback GetAddHandler(ApiRecipeCollection collection)
+    {
+        return new(this, new Func<object, Task>(_ => HandleAdd(collection)));
+    }
+
+    private async Task HandleAdd(ApiRecipeCollection collection)
+    {
+        var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
+        if (userId != null)
+        {
+            var recipeInCollection = new ApiRecipeInCollection()
+            {
+                CollectionTitle = collection.Title,
+                RecipeId = RecipeId,
+                CollectionUserId = collection.UserId
+            };
+            await Http.PostAsJsonAsync("api/RecipeInCollection", recipeInCollection);
+        }
+    }
+
+}

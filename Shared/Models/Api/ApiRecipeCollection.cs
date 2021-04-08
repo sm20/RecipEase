@@ -6,10 +6,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RecipEase.Shared.Models.Api
 {
-    public enum Visibility {
-        Private, Public
-    }
-
     public class ApiRecipeCollection
     {
         [Required]

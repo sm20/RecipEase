@@ -1,4 +1,4 @@
-﻿@using RecipEase.Shared.Models.Api
+@using RecipEase.Shared.Models.Api
 @using Util
 @inject IHttpClientFactory ClientFactory
 
@@ -10,9 +10,7 @@
     >
         <div class="d-flex w-100 justify-content-between">
             <h5 class="mb-1">@Recipe.Name</h5>
-            <CascadingValue Value="@Id">
-                <RatingAvgCalculated></RatingAvgCalculated>
-            </CascadingValue>
+            <RatingAvgCalculated RecipeId="@Id"></RatingAvgCalculated>
         </div>
         <p
             class="mb-1"
@@ -28,7 +26,7 @@
 @code
 {
     [Parameter]
-    public string Id { get; set; }
+    public int Id { get; set; }
 
     private ApiRecipe Recipe { get; set; }
 
@@ -37,7 +35,7 @@
     protected override async Task OnInitializedAsync()
     {
         var client = Auth.GetNoAuthHttpClient(ClientFactory);
-        String path = $"api/Recipe/{Id}";
+        var path = $"api/Recipe/{Id}";
         Recipe = await client.GetFromJsonAsync<ApiRecipe>(path);
 
         if (Recipe != null && Recipe.AuthorId != null)

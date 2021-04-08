@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecipEase.Server.Data;
+using RecipEase.Shared.Models;
 using RecipEase.Shared.Models.Api;
 
 namespace RecipEase.Server.Controllers
@@ -17,10 +19,12 @@ namespace RecipEase.Server.Controllers
     public class RecipeInCollectionController : ControllerBase
     {
         private readonly RecipEaseContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public RecipeInCollectionController(RecipEaseContext context)
+        public RecipeInCollectionController(RecipEaseContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
@@ -38,11 +42,16 @@ namespace RecipEase.Server.Controllers
         /// included to filter for the given recipe collection.
         ///
         /// </remarks>
+        /// <param name="userId">The userId of the customer who owns the collections to be retrieved.</param>
+        /// <param name="collectionTitle">The title of the collection whose recipes should be retrieved.</param>
         [HttpGet]
-        [Consumes("application/json")]
-        public async Task<ActionResult<IEnumerable<ApiRecipeInCollection>>> GetRecipeInCollection(ApiRecipeCollection collection)
+        public async Task<ActionResult<IEnumerable<ApiRecipeInCollection>>> GetRecipeInCollection(string userId,
+            string collectionTitle)
         {
-            return await _context.ApiRecipeInCollection.ToListAsync();
+            var query = from c in _context.RecipeInCollection
+                where c.CollectionTitle == collectionTitle && c.CollectionUserId == userId
+                select c;
+            return await query.Select(c => c.ToApiRecipeInCollection()).ToListAsync();
         }
 
         /// <summary>
@@ -69,26 +78,40 @@ namespace RecipEase.Server.Controllers
         ///
         /// </remarks>
         [HttpPost]
-        public async Task<ActionResult<ApiRecipeInCollection>> PostRecipeInCollection(ApiRecipeInCollection apiRecipeInCollection)
+        public async Task<ActionResult<ApiRecipeInCollection>> PostRecipeInCollection(
+            ApiRecipeInCollection apiRecipeInCollection)
         {
-            _context.ApiRecipeInCollection.Add(apiRecipeInCollection);
+            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (apiRecipeInCollection.CollectionUserId != currentUserId)
+            {
+                return Unauthorized();
+            }
+
+            var recipeInCollection = new RecipeInCollection()
+            {
+                CollectionTitle = apiRecipeInCollection.CollectionTitle,
+                RecipeId = apiRecipeInCollection.RecipeId,
+                CollectionUserId = apiRecipeInCollection.CollectionUserId
+            };
+
+            _context.RecipeInCollection.Add(recipeInCollection);
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
-                if (RecipeInCollectionExists(apiRecipeInCollection.RecipeId))
+                if (RecipeInCollectionExists(recipeInCollection))
                 {
                     return Conflict();
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
-            return CreatedAtAction("GetApiRecipeInCollection", new { id = apiRecipeInCollection.RecipeId }, apiRecipeInCollection);
+            return CreatedAtAction("GetRecipeInCollection", new {id = apiRecipeInCollection.RecipeId},
+                apiRecipeInCollection);
         }
 
         /// <summary>
@@ -114,24 +137,37 @@ namespace RecipEase.Server.Controllers
         /// collection and recipe keys.
         ///
         /// </remarks>
+        /// <param name="recipeId">The recipe to remove from the collection.</param>
+        /// <param name="collectionTitle">The collection to delete from.</param>
         [HttpDelete]
-        public async Task<IActionResult> DeleteRecipeInCollection(ApiRecipeInCollection apiRecipeInCollection)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
+        public async Task<IActionResult> DeleteRecipeInCollection(int recipeId, string collectionTitle)
         {
-            // var apiRecipeInCollection = await _context.ApiRecipeInCollection.FindAsync(id);
-            if (apiRecipeInCollection == null)
+            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var query = from c in _context.RecipeInCollection
+                where c.CollectionUserId == currentUserId && c.CollectionTitle == collectionTitle &&
+                      c.RecipeId == recipeId
+                select c;
+            var recipeInCollection = await query.FirstOrDefaultAsync();
+            if (recipeInCollection == null)
             {
                 return NotFound();
             }
 
-            _context.ApiRecipeInCollection.Remove(apiRecipeInCollection);
+            _context.RecipeInCollection.Remove(recipeInCollection);
             await _context.SaveChangesAsync();
 
             return Ok();
         }
 
-        private bool RecipeInCollectionExists(int id)
+        private bool RecipeInCollectionExists(RecipeInCollection recipeInCollection)
         {
-            return _context.ApiRecipeInCollection.Any(e => e.RecipeId == id);
+            return _context.RecipeInCollection.Any(e =>
+                e.RecipeId == recipeInCollection.RecipeId && e.CollectionTitle == recipeInCollection.CollectionTitle &&
+                e.CollectionUserId == recipeInCollection.CollectionUserId);
         }
     }
 }
