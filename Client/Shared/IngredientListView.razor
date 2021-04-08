@@ -38,6 +38,7 @@
                 </select>
             </div>
             <span class="badge badge-primary badge-pill">@(quantifiedIngredient.Ingredient.Rarity?.ToString())</span>
+            <IngredientSuppliersButton IngredientName="@quantifiedIngredient.Ingredient.Name"></IngredientSuppliersButton>
             @if (ShowDelete)
             {
                 <TrashButton ClickHandler="@GetDeleteHandler(key)"></TrashButton>

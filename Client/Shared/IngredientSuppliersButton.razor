@@ -1,0 +1,49 @@
+﻿@using RecipEase.Shared.Models.Api
+@using RecipEase.Client.Shared.Util
+@inject HttpClient Http
+
+<div class="dropdown">
+    <button
+        @onclick="@HandleClick"
+        class="btn btn-primary-outline dropdown-toggle"
+        type="button"
+        id="view-suppliers"
+        data-bs-toggle="dropdown"
+        aria-expanded="false">
+        View suppliers
+    </button>
+    <div
+        class="dropdown-menu"
+        aria-labelledby="view-suppliers">
+        @if (Suppliers != null)
+        {
+            @foreach (var supplier in Suppliers)
+            {
+                <a href="@supplier.Website" class="dropdown-item">@supplier.SupplierName</a>
+            }
+        }
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public string IngredientName { get; set; }
+
+    private List<ApiSupplier> Suppliers { get; set; }
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    private async Task HandleClick()
+    {
+        if (Suppliers != null) return;
+        
+        var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
+        if (userId != null)
+        {
+            var path = $"api/Supplies/{IngredientName}";
+            Suppliers = await Http.GetFromJsonAsync<List<ApiSupplier>>(path);
+        }
+    }
+}
