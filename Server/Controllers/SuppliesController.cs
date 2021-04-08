@@ -49,7 +49,7 @@ namespace RecipEase.Server.Controllers
             var query =
                 from supplies in _context.Supplies
                 join supplier in _context.Supplier on supplies.UserId equals supplier.UserId
-                where supplies.IngrName == ingredientName
+                where supplies.IngrName == ingredientName && supplies.Quantity > 0
                 select supplier.ToApiSupplier();
             return await query.ToListAsync();
         }
