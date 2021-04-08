@@ -28,5 +28,15 @@ namespace RecipEase.Shared.Models
                 Rating = Rating
             };
         }
+
+        public static RecipeRating FromApiToRecipeRating(ApiRecipeRating rec)
+        {
+            return new()
+            {
+                Rating = rec.Rating,
+                UserId = rec.UserId,
+                RecipeId = rec.RecipeId
+            };
+        }
     }
 }

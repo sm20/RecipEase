@@ -43,7 +43,7 @@
         
         var client = Auth.GetNoAuthHttpClient(ClientFactory);
         var extractedRating = await client.GetFromJsonAsync<List<ApiRecipeRating>>(uriBuilder.ToString());
-        Console.WriteLine("ratingLen:"+extractedRating.Count() );
+        //Console.WriteLine("ratingLen:"+extractedRating.Count() );
 
 
         //calculate average

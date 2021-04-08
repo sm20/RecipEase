@@ -12,8 +12,9 @@
             <RatingAvgCalculated></RatingAvgCalculated>
         </CascadingValue>
     </h1>
-
-    <RateRecipeComponent></RateRecipeComponent>
+    <CascadingValue Value="@RecipeId">
+        <RateRecipeComponent></RateRecipeComponent>
+    </CascadingValue>
     <br>
     <br>
     <h2>Directions</h2>
@@ -66,6 +67,7 @@
 
 @code {
 
+
     [Parameter]
     public string RecipeId { get; set; } = "default value";
 
@@ -74,6 +76,8 @@
     public IEnumerable<ApiUses> uses { get; set; }
 
     public IDictionary<ApiUses, ApiIngredient> ingr { get; set; }
+    
+    
 
 
 

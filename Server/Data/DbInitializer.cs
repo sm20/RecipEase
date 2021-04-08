@@ -161,12 +161,12 @@ namespace RecipEase.Server.Data
             {
                 var recipeRatings = new[]
                 {
-                    new RecipeRating
-                    {
-                        Rating = 5,
-                        RecipeId = _recipe0Id,
-                        UserId = _testCustomerId
-                    },
+                    // new RecipeRating
+                    // {
+                    //     Rating = 5,
+                    //     RecipeId = _recipe0Id,
+                    //     UserId = _testCustomerId
+                    // },
                     new RecipeRating
                     {
                         Rating = 4,

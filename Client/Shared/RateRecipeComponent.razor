@@ -1,24 +1,176 @@
 
+@using RecipEase.Shared.Models
+@using RecipEase.Shared.Models.Api
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Net
+@using RecipEase.Client.Shared.Util
+@using RecipEase.Shared
+@using System.Security.Claims
+@inject IHttpClientFactory ClientFactory
+@inject HttpClient Http
+
+
 <div class="starRatings">
-  <RadzenRating Change=@(args => OnChange(args, "Rating with " + @numStars + " stars")) />
+  <RadzenRating  Disabled=@isDisabled Value=@currStars Change=@(args => OnChange(args, "Rating with " + @numStars + " stars")) />
 </div>
 
 @code
 {
-    double ratingValue = 4.5;
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+    [CascadingParameter]
+    public string RecipeId { get; set; }
+
+    public string userId = null;
+    private string _error = null;
+    private string _success = null;
     int numStars = 0;
-    void OnChange(int value, string name)
+    int currStars = 0;
+    public bool isDisabled = true;
+
+
+    protected override async Task OnInitializedAsync()
     {
-        if (value == 0)
+        try
+        {
+            var authState = await AuthenticationStateTask;
+            var user = authState.User;
+
+            userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
+            if (userId != null)
+            {
+                if (user.Identity != null && user.Identity.IsAuthenticated)
+                {
+                    SetComponentEnable(user);
+
+                    //Get users rating of recipe on page load
+                    var uriBuilder = new UriBuilder(Http.BaseAddress)
+                    {
+                        Path = "api/RecipeRating",
+                        Query = $"userId={userId}" + "&" + $"recipeId={RecipeId}"
+                    };
+                    var client = Auth.GetNoAuthHttpClient(ClientFactory);
+                    var extractedRating = await client.GetFromJsonAsync<List<ApiRecipeRating>>(uriBuilder.ToString());
+
+                    if(extractedRating.Count() != 0)
+                    {
+                        currStars = extractedRating[0].Rating;
+                        Console.WriteLine("ratingVal:"+extractedRating[0].Rating ); 
+                    }
+                        
+                }
+
+                
+            }
+        }
+        catch (AccessTokenNotAvailableException e)
+        {
+            e.Redirect();
+        }
+        catch (HttpRequestException e)
+        {
+            _error = "An error occurred loading your account.";
+        }
+    }
+
+    private async void GetResponseToRequest(String path,String query,String requestType)
+    {
+        var uriBuilder = new UriBuilder(Http.BaseAddress)
+        {
+            Path = path,
+            Query = query
+        };
+        if(requestType == "POST")
+        {
+
+            ApiRecipeRating newApiSupplies = new ApiRecipeRating()
+            {
+                UserId = userId,
+                RecipeId = Int32.Parse(RecipeId),
+                Rating = currStars
+            };
+            var response = await Http.PostAsJsonAsync("api/RecipeRating", newApiSupplies);
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Could not add rating.");
+            }
+        }
+        else if(requestType == "PUT")
+        {
+            ApiRecipeRating obj = new ApiRecipeRating()
+            {
+                Rating = currStars,
+                UserId = "johnson",
+                RecipeId = 0
+            };
+            //must take in object as arg2 & obj attributes cant have any null values
+            var response = await Http.PutAsJsonAsync(uriBuilder.ToString(), obj);
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Could not update rating.");
+            }
+        }
+        else if(requestType == "DELETE")
+        {
+            ApiRecipeRating obj = new ApiRecipeRating()
+            {
+                UserId = userId,
+                RecipeId = Int32.Parse(RecipeId),
+                Rating = 2 //placeholder
+            };
+            
+            uriBuilder = new UriBuilder(Http.BaseAddress)
+            {
+                Path = path
+            };
+            var request = new HttpRequestMessage
+            {
+                Content = JsonContent.Create(obj),
+                Method = HttpMethod.Delete,
+                RequestUri = uriBuilder.Uri
+            };
+            var response = await Http.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Could not delete rating.");
+            }
+
+        }
+    }
+
+    private void SetComponentEnable(ClaimsPrincipal user)
+    {
+        if (user.IsInRole(Role.Customer.ToString()))
+        {
+            isDisabled = false;
+        }
+    }
+
+    void OnChange(int value, string name)
+    {//value is new 'args' value
+        
+        if (value == 0) //user pressed cancel on the rating
         {
             //rating removed by user, delete the users rating in the database
-        }
-        else
-        {
-            //update users rating in the database
-        }
+            GetResponseToRequest("api/RecipeRating", $"userId={userId}" + "&" + $"recipeId={RecipeId}","DELETE");
 
-        //debug
+        }
+        else if(currStars == 0) //no user rating yet, POST op available
+        {
+            //create users rating in the database if user doesn't exist in ratings table
+            currStars = value;
+            GetResponseToRequest("api/RecipeRating","","POST");
+
+        } //         POST             NO CHANGE
+        else if(currStars != 0 && currStars != value)
+        {
+            //update the user's rating if their rating already exists
+            currStars = value;
+            GetResponseToRequest("api/RecipeRating", $"userId={userId}" +
+                "&" + $"recipeId={RecipeId}","PUT");
+        }
+        currStars = value;  //update num of stars showing
+
         numStars = value;
         Console.WriteLine($"{name} value changed to {value}");
     }
