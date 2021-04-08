@@ -8,9 +8,7 @@
 {
 
     <h1>@RecipeViewed.Name
-        <CascadingValue Value="@RecipeId">
-            <RatingAvgCalculated></RatingAvgCalculated>
-        </CascadingValue>
+        <RatingAvgCalculated RecipeId="@int.Parse(RecipeId)"></RatingAvgCalculated>
     </h1>
     <CascadingValue Value="@RecipeId">
         <RateRecipeComponent></RateRecipeComponent>
@@ -69,7 +67,7 @@
 
 
     [Parameter]
-    public string RecipeId { get; set; } = "default value";
+    public string RecipeId { get; set; }
 
     public ApiRecipe RecipeViewed { get; set; }
 
