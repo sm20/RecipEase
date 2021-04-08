@@ -439,41 +439,60 @@ namespace RecipEase.Server.Data
             var existingCustomer = await context.Customer.FirstOrDefaultAsync();
             if (existingCustomer == null)
             {
+                var customer1Info = new Customer()
+                {
+                    CustomerName = "Calum Sieppert",
+                    Age = 20,
+                    Weight = 160,
+                    FavMeal = Meal.Lunch,
+                };
                 var (customer, _) = await
                     Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        TestCustomerUsername, TestCustomerPassword);
+                        TestCustomerUsername, TestCustomerPassword, customerInfo: customer1Info);
                 _testCustomerId = customer.Id;
 
+                var customer2Info = new Customer()
+                {
+                    CustomerName = "Sajid Choudhry",
+                    Age = 20,
+                    Weight = 160,
+                    FavMeal = Meal.Dinner,
+                };
                 (customer, _) = await
                     Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        "c2@c2", "c2");
+                        "c2@c2", "c2", customerInfo: customer2Info);
                 _testCustomerId2 = customer.Id;
 
+                var customer3Info = new Customer()
+                {
+                    CustomerName = "Khoa Nguyen Tran Dang",
+                    Age = 20,
+                    Weight = 160,
+                    FavMeal = Meal.Breakfast,
+                };
                 (customer, _) = await
                     Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        "c3@c3", "c3");
+                        "c3@c3", "c3", customerInfo: customer3Info);
                 _testCustomerId3 = customer.Id;
             }
             else
             {
                 _testCustomerId = existingCustomer.UserId;
-
-                var (customer, _) = await
-                    Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        "c2@c2", "c2");
-                _testCustomerId2 = customer.Id;
-
-                (customer, _) = await
-                    Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        "c3@c3", "c3");
-                _testCustomerId3 = customer.Id;
             }
 
             var existingSupplier = await context.Supplier.FirstOrDefaultAsync();
             if (existingSupplier == null)
             {
+                var supplierInfo = new Supplier()
+                {
+                    Email = "business@business.com",
+                    Website = "https://example.com",
+                    PhoneNo = "123-456-7890",
+                    SupplierName = "A Business",
+                    StoreVisitCount = 3
+                };
                 var (supplier, _) = await Users.CreateUser(userManager, context, Users.AccountType.Supplier,
-                    TestSupplierUsername, TestSupplierPassword);
+                    TestSupplierUsername, TestSupplierPassword, supplierInfo: supplierInfo);
                 _testSupplierId = supplier.Id;
             }
             else
