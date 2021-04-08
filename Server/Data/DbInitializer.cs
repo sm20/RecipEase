@@ -47,7 +47,8 @@ namespace RecipEase.Server.Data
             await InitializeRecipeRatings(context);
             await InitializeRecipeCollections(context);
             await InitializeUses(context);
-            
+            await InitializeRecipeCategories(context);
+
             await context.SaveChangesAsync();
         }
 
@@ -98,12 +99,72 @@ namespace RecipEase.Server.Data
                 await context.Recipe.AddRangeAsync(recipes);
                 await context.SaveChangesAsync();
             }
+
             var allRecipes = await context.Recipe.ToListAsync();
             if (allRecipes.Count == 3)
             {
                 _recipe0Id = allRecipes[0].Id;
                 _recipe1Id = allRecipes[1].Id;
                 _recipe2Id = allRecipes[2].Id;
+            }
+        }
+
+        private static async Task InitializeRecipeCategories(RecipEaseContext context)
+        {
+            var breakfast = "Breakfast";
+            var lunch = "Lunch";
+            var dinner = "Dinner";
+            if (!context.RecipeCategory.Any())
+            {
+                var categories = new[]
+                {
+                    new RecipeCategory
+                    {
+                        Name = breakfast,
+                        AverageCaloriesCatg = 500,
+                        TotalInCatg = 1,
+                    },
+                    new RecipeCategory
+                    {
+                        Name = lunch,
+                        AverageCaloriesCatg = 600,
+                        TotalInCatg = 1
+                    },
+                    new RecipeCategory
+                    {
+                        Name = dinner,
+                        AverageCaloriesCatg = 700,
+                        TotalInCatg = 1,
+                    },
+                };
+
+                await context.RecipeCategory.AddRangeAsync(categories);
+                await context.SaveChangesAsync();
+            }
+
+            if (!context.RecipeInCategory.Any())
+            {
+                var recipeInCategories = new[]
+                {
+                    new RecipeInCategory
+                    {
+                        RecipeId = _recipe0Id,
+                        CategoryName = breakfast
+                    },
+                    new RecipeInCategory
+                    {
+                        RecipeId = _recipe1Id,
+                        CategoryName = lunch
+                    },
+                    new RecipeInCategory
+                    {
+                        RecipeId = _recipe2Id,
+                        CategoryName = dinner
+                    },
+                };
+
+                await context.RecipeInCategory.AddRangeAsync(recipeInCategories);
+                await context.SaveChangesAsync();
             }
         }
 
@@ -211,7 +272,7 @@ namespace RecipEase.Server.Data
                         CollectionUserId = _testCustomerId,
                     },
                 };
-                
+
                 await context.RecipeCollection.AddRangeAsync(recipeCollections);
                 await context.RecipeInCollection.AddRangeAsync(recipeInCollections);
                 await context.SaveChangesAsync();
@@ -278,9 +339,8 @@ namespace RecipEase.Server.Data
                         RecipeId = _recipe2Id,
                         UserId = _testCustomerId3
                     },
-
                 };
-                
+
                 await context.RecipeRating.AddRangeAsync(recipeRatings);
             }
         }
@@ -379,33 +439,33 @@ namespace RecipEase.Server.Data
             var existingCustomer = await context.Customer.FirstOrDefaultAsync();
             if (existingCustomer == null)
             {
-                var (customer, _) = await 
+                var (customer, _) = await
                     Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        TestCustomerUsername, TestCustomerPassword);     
+                        TestCustomerUsername, TestCustomerPassword);
                 _testCustomerId = customer.Id;
 
-                (customer, _) = await 
+                (customer, _) = await
                     Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        "c2@c2", "c2");     
+                        "c2@c2", "c2");
                 _testCustomerId2 = customer.Id;
 
-                (customer, _) = await 
+                (customer, _) = await
                     Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        "c3@c3", "c3");     
+                        "c3@c3", "c3");
                 _testCustomerId3 = customer.Id;
             }
             else
             {
                 _testCustomerId = existingCustomer.UserId;
 
-                var (customer, _) = await 
+                var (customer, _) = await
                     Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        "c2@c2", "c2");     
+                        "c2@c2", "c2");
                 _testCustomerId2 = customer.Id;
 
-                (customer, _) = await 
+                (customer, _) = await
                     Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        "c3@c3", "c3");     
+                        "c3@c3", "c3");
                 _testCustomerId3 = customer.Id;
             }
 
