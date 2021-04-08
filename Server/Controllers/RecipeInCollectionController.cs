@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecipEase.Server.Data;
+using RecipEase.Shared.Models;
 using RecipEase.Shared.Models.Api;
 
 namespace RecipEase.Server.Controllers
@@ -44,7 +45,8 @@ namespace RecipEase.Server.Controllers
         /// <param name="userId">The userId of the customer who owns the collections to be retrieved.</param>
         /// <param name="collectionTitle">The title of the collection whose recipes should be retrieved.</param>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ApiRecipeInCollection>>> GetRecipeInCollection(string userId, string collectionTitle)
+        public async Task<ActionResult<IEnumerable<ApiRecipeInCollection>>> GetRecipeInCollection(string userId,
+            string collectionTitle)
         {
             var query = from c in _context.RecipeInCollection
                 where c.CollectionTitle == collectionTitle && c.CollectionUserId == userId
@@ -76,26 +78,40 @@ namespace RecipEase.Server.Controllers
         ///
         /// </remarks>
         [HttpPost]
-        public async Task<ActionResult<ApiRecipeInCollection>> PostRecipeInCollection(ApiRecipeInCollection apiRecipeInCollection)
+        public async Task<ActionResult<ApiRecipeInCollection>> PostRecipeInCollection(
+            ApiRecipeInCollection apiRecipeInCollection)
         {
-            _context.ApiRecipeInCollection.Add(apiRecipeInCollection);
+            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (apiRecipeInCollection.CollectionUserId != currentUserId)
+            {
+                return Unauthorized();
+            }
+
+            var recipeInCollection = new RecipeInCollection()
+            {
+                CollectionTitle = apiRecipeInCollection.CollectionTitle,
+                RecipeId = apiRecipeInCollection.RecipeId,
+                CollectionUserId = apiRecipeInCollection.CollectionUserId
+            };
+
+            _context.RecipeInCollection.Add(recipeInCollection);
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
-                if (RecipeInCollectionExists(apiRecipeInCollection.RecipeId))
+                if (RecipeInCollectionExists(recipeInCollection))
                 {
                     return Conflict();
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
-            return CreatedAtAction("GetRecipeInCollection", new { id = apiRecipeInCollection.RecipeId }, apiRecipeInCollection);
+            return CreatedAtAction("GetRecipeInCollection", new {id = apiRecipeInCollection.RecipeId},
+                apiRecipeInCollection);
         }
 
         /// <summary>
@@ -132,7 +148,8 @@ namespace RecipEase.Server.Controllers
             var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             var query = from c in _context.RecipeInCollection
-                where c.CollectionUserId == currentUserId && c.CollectionTitle == collectionTitle && c.RecipeId == recipeId
+                where c.CollectionUserId == currentUserId && c.CollectionTitle == collectionTitle &&
+                      c.RecipeId == recipeId
                 select c;
             var recipeInCollection = await query.FirstOrDefaultAsync();
             if (recipeInCollection == null)
@@ -146,9 +163,11 @@ namespace RecipEase.Server.Controllers
             return Ok();
         }
 
-        private bool RecipeInCollectionExists(int id)
+        private bool RecipeInCollectionExists(RecipeInCollection recipeInCollection)
         {
-            return _context.ApiRecipeInCollection.Any(e => e.RecipeId == id);
+            return _context.RecipeInCollection.Any(e =>
+                e.RecipeId == recipeInCollection.RecipeId && e.CollectionTitle == recipeInCollection.CollectionTitle &&
+                e.CollectionUserId == recipeInCollection.CollectionUserId);
         }
     }
 }
