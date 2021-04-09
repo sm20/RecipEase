@@ -185,9 +185,23 @@ namespace RecipEase.Server.Controllers
         public async Task<ActionResult<Recipe>> PostRecipe(Recipe apiRecipe)
         {
             _context.Recipe.Add(apiRecipe);
-            await _context.SaveChangesAsync();
-            int id = apiRecipe.Id;
-            Console.WriteLine(id);
+            
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                if (RecipeExists(apiRecipe.Id))
+                {
+                    return Conflict();
+                }
+                else
+                {
+                    throw;
+                }
+            }
             return CreatedAtAction("GetRecipes", new { id = apiRecipe.Id }, apiRecipe);
         }
 

@@ -38,9 +38,9 @@ namespace RecipEase.Server.Controllers
         /// </remarks>
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ApiUnit>>> GetApiUnit()
+        public async Task<ActionResult<IEnumerable<ApiUnit>>> GetUnit()
         {
-            return await _context.ApiUnit.ToListAsync();
+            return await _context.Unit.Select(u => u.ToApiUnit()).ToListAsync();
         }
 
         /// <summary>

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecipEase.Server.Data;
 using RecipEase.Shared.Models.Api;
+using RecipEase.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
 
 namespace RecipEase.Server.Controllers
@@ -96,7 +97,7 @@ namespace RecipEase.Server.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ApiUsesExists(id))
+                if (!ApiUsesExists(apiUses.RecipeId, apiUses.UnitName, apiUses.IngrName))
                 {
                     return NotFound();
                 }
@@ -122,16 +123,16 @@ namespace RecipEase.Server.Controllers
         /// </remarks>
         /// <param name="apiUses">The associated object from the Uses table.</param>
         [HttpPost]
-        public async Task<ActionResult<ApiUses>> PostApiUses(ApiUses apiUses)
+        public async Task<ActionResult<ApiUses>> PostApiUses(Uses apiUses)
         {
-            _context.ApiUses.Add(apiUses);
+            _context.Uses.Add(apiUses);
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
-                if (ApiUsesExists(apiUses.RecipeId))
+                if (ApiUsesExists(apiUses.RecipeId, apiUses.UnitName, apiUses.IngrName))
                 {
                     return Conflict();
                 }
@@ -170,9 +171,9 @@ namespace RecipEase.Server.Controllers
             return NoContent();
         }
 
-        private bool ApiUsesExists(int id)
+        private bool ApiUsesExists(int rec, string unit, string ingr)
         {
-            return _context.ApiUses.Any(e => e.RecipeId == id);
+            return _context.ApiUses.Any(e => (e.RecipeId == rec && e.UnitName == unit && e.IngrName == ingr));
         }
     }
 }
