@@ -5,10 +5,17 @@
 @if (Recipes != null)
 {
     <div class="list-group">
-        @foreach (var recipe in Recipes)
+        @if (Recipes.Count == 0)
         {
-            <RecipeCard Recipe="@recipe"></RecipeCard>
-            @ChildContent
+            @("Sorry, no recipes here!")
+        }
+        else
+        {
+            @foreach (var recipe in Recipes)
+            {
+                <RecipeCard Recipe="@recipe"></RecipeCard>
+                @ChildContent
+            }
         }
     </div>
 }
@@ -22,9 +29,22 @@
     [Parameter]
     public string UserId { get; set; }
 
+    /// Title to filter recipes by.
+    [Parameter]
+    public string Title { get; set; }
+
+    /// Category to filter recipes by.
+    [Parameter]
+    public string Category { get; set; }
+
     private List<ApiRecipe> Recipes { get; set; }
 
     protected override async Task OnInitializedAsync()
+    {
+        await RefreshRecipes();
+    }
+
+    private async Task RefreshRecipes()
     {
         var client = Auth.GetNoAuthHttpClient(ClientFactory);
 
@@ -35,6 +55,16 @@
             query.Add($"userId={UserId}");
         }
 
+        if (Title != null)
+        {
+            query.Add($"titleMatch={Title}");
+        }
+
+        if (Category != null)
+        {
+            query.Add($"categoryName={Category}");
+        }
+
         var uriBuilder = new UriBuilder(client.BaseAddress)
         {
             Path = "api/Recipe",
@@ -42,6 +72,11 @@
         };
 
         Recipes = await client.GetFromJsonAsync<List<ApiRecipe>>(uriBuilder.ToString());
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await RefreshRecipes();
     }
 
 }

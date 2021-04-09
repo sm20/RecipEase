@@ -1,17 +1,66 @@
 ﻿@page "/Recipes"
+@using RecipEase.Client.Shared.Util
+@using RecipEase.Shared.Models.Api
+@inject IHttpClientFactory ClientFactory
 
 <h1>Recipes</h1>
 
-<form class="my-3">
-    <input class="form-control w-25 mb-1" type="search" placeholder="Search recipes" aria-label="Search">
-    <div class="mb-1">
-        <b>Filter by category:</b><br />
-    </div>
-    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-</form>
+<div class="my-3">
+    <input class="form-control w-25 mb-1" type="search" placeholder="Search recipes" aria-label="Search" @bind="@TitleQueryInProgress">
+    @if (RecipeCategories != null)
+    {
+        <div class="mb-1">
+            <b>Filter by category:</b><br/>
+            <select class="form-control w-50" @bind="@CategoryQueryInProgress">
+                <option value="@NoCategory" selected>Select a category</option>
+                @foreach (var category in RecipeCategories)
+                {
+                    <option value="@category.Name">@category.Name</option>
+                }
+            </select>
+        </div>
+    }
 
-<RecipeListView></RecipeListView>
+    <div class="btn-group">
+        <button class="btn btn-primary" @onclick="HandleSearchSubmit">Search</button>
+        <button class="btn btn-outline-danger" @onclick="HandleSearchClear">Clear Search</button>
+    </div>
+</div>
+
+<RecipeListView Category="@CategoryQuery" Title="@TitleQuery"></RecipeListView>
 
 @code {
+
+    private const string NoCategory = "No category";
+
+    private List<ApiRecipeCategory> RecipeCategories { get; set; }
+
+    private string TitleQuery { get; set; }
+
+    private string CategoryQuery { get; set; }
+
+    private string TitleQueryInProgress { get; set; }
+
+    private string CategoryQueryInProgress { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var client = Auth.GetNoAuthHttpClient(ClientFactory);
+        RecipeCategories = await client.GetFromJsonAsync<List<ApiRecipeCategory>>("api/RecipeCategory");
+    }
+
+    private void HandleSearchSubmit()
+    {
+        TitleQuery = TitleQueryInProgress;
+        CategoryQuery = CategoryQueryInProgress != NoCategory ? CategoryQueryInProgress : null;
+    }
+
+    private void HandleSearchClear()
+    {
+        TitleQuery = null;
+        TitleQueryInProgress = null;
+        CategoryQuery = null;
+        CategoryQueryInProgress = null;
+    }
 
 }
