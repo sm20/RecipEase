@@ -6,11 +6,18 @@
 @using RecipEase.Client.Shared.Util
 @using RecipEase.Shared
 @inject HttpClient Http
+@using Microsoft.AspNetCore.Authorization
+@using RecipEase.Shared
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@attribute [Authorize]
+
 
 
 @page "/EditRecipe/{recipeId}"
 
 <h2>Edit Recipe</h2>
+
 
 @if (_error != null)
 {
@@ -20,48 +27,185 @@
 {
     <div class="container alert-success">@_success</div>
 }
-@if (_customer != null)
+@if (_customer != null && _rec!= null)
 {
-    @* <EditForm
-\        OnValidSubmit="@HandleValidSubmit"
+    <EditForm
+        Id = "RecipeForm"
+        Model="@_rec"
+        OnValidSubmit="@HandleValidSubmit"
         class="w-50">
 
         <DataAnnotationsValidator/>
         <ValidationSummary/>
 
         <div class="form-group">
-            
+            <label for="name"><h2>Title</h2></label>
+            <InputText
+                id="name" class="form-control"
+                @bind-Value="_rec.Name"/>
         </div>
-        <div class="form-group">
-            
-        </div>
-        <div class="form-group">
-            
-        </div>
-        <div class="form-group">
-            
-        </div>
-        <div class="form-group">
-        </div>
-        <p></p>
 
-    </EditForm> *@
+        
+        <div class="form-group">
+            <label for="steps"><h2> Direction </h2></label>
+            <RadzenTextArea
+                id="steps" class="form-control" Rows="8"
+                @bind-Value="_rec.Steps"/>
+        </div>
+
+        <h2>Nutritions Stats</h2>
+
+        <div class="form-group">
+            <label for="steps">Cholesterol:</label>
+        <RadzenNumeric TValue="double?" Min = "0" Format="0.00" Placeholder="Enter or clear value" 
+                @bind-Value="_rec.Cholesterol"/> mg/dL
+        </div>
+
+        <div class="form-group">
+            <label for="steps">Fat:</label>
+        <RadzenNumeric TValue="double?"  Min = "0" Format="0.00" Placeholder="Enter or clear value" 
+                @bind-Value="_rec.Fat"/> mg
+        </div>
+
+        <div class="form-group">
+            <label for="steps">Sodium:</label>
+        <RadzenNumeric TValue="double?"  Min = "0" Format="0.00" Placeholder="Enter or clear value" 
+                @bind-Value="_rec.Sodium"/> mg
+        </div>
+
+        <div class="form-group">
+            <label for="steps">Protein:</label>
+        <RadzenNumeric TValue="double?"  Min = "0" Format="0.00" Placeholder="Enter or clear value" 
+                @bind-Value="_rec.Protein"/> mg
+        </div>
+
+        <div class="form-group">
+            <label for="steps">Carbs:</label>
+        <RadzenNumeric TValue="double?"  Min = "0" Format="0.00" Placeholder="Enter or clear value" 
+                @bind-Value="_rec.Carbs"/> mg
+        </div>
+
+        <div class="form-group">
+            <label for="steps">Calories:</label>
+        <RadzenNumeric TValue="double?"  Min = "0" Format="0.00" Placeholder="Enter or clear value" 
+                @bind-Value="_rec.Calories"/> kcal
+        </div>
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Update Recipe</button>
+        </div>
+
+    </EditForm>
+
+    <h2> Ingredients Used</h2>
+        <ul class="list-group list-group-flush mb-4">
+
+                @foreach (var item in uses)
+                {
+                    <EditForm  Model="@item"  OnValidSubmit="@HandleValidSubmit"   class="w-50">
+
+                    <DataAnnotationsValidator/>
+                    <ValidationSummary/>
+                    <div class="form-row">
+                        <div class="col">
+                            <InputSelect id="ingr" class="form-control" @bind-Value="item.IngrName" >
+                                @foreach(ApiIngredient i in allIngr)
+                                    {
+                                        <option value = "@i.Name"> @i.Name </option >
+                                    }
+                            </InputSelect>
+                        </div>
+
+                        <div class="col">
+                            <InputNumber id="Quantity" Min="0" class="form-control" @bind-Value="item.Quantity" />
+                        </div>
+                       
+                        <div class="col">
+                            <InputSelect id="Unit" class="form-control" @bind-Value="item.UnitName" >
+                                @foreach(ApiUnit u in allUnit)
+                                    {
+                                        <option value = "@u.Name"> @u.Name </option >
+                                    }
+                            </InputSelect>
+                        </div>
+                        <div>
+                            <TrashButton></TrashButton>
+                        </div>
+                    </div>
+                    </EditForm>
+                }
+        </ul>
+
+    <h2> Add Ingredients</h2>
+        <EditForm Model="temp_use" OnValidSubmit="@AddIngr" class="w-50">
+            <DataAnnotationsValidator/>
+                <ValidationSummary/>
+                <div class="form-row">
+                        <div class="col">
+                            <InputSelect id="ingr" class="form-control" @bind-Value="temp_use.IngrName" >
+                                <option value = "">   </option >
+                                @foreach(ApiIngredient i in allIngr)
+                                    {
+                                        <option value = "@i.Name"> @i.Name </option >
+                                    }
+                            </InputSelect>
+                        </div>
+
+                        <div class="col">
+                            <InputNumber id="Quantity" Min="0" class="form-control" @bind-Value="temp_use.Quantity" />
+                        </div>
+                       
+                        <div class="col">
+                            <InputSelect id="Unit" class="form-control" @bind-Value="temp_use.UnitName" >
+                                <option value = "">   </option >
+                                @foreach(ApiUnit u in allUnit)
+                                    {
+                                        <option value = "@u.Name"> @u.Name </option >
+                                    }
+                            </InputSelect>
+                        </div>
+
+                        
+                        <div class="col">
+                            <button type="submit"  class="btn btn-outline-success" width="16" height="16" style="padding:5px 15px 5px 15px"> + Add </button>
+                        </div>
+                </div>
+        </EditForm>
 }
-
+       
+        
 @code {
 
     [Parameter]
-    public string RecipeId {get;set;}  = "default value";
+    public string recipeId {get;set;}  = "default value";
 
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
     private ApiCustomer _customer = null;
+    private ApiRecipe _rec = null;
     private string _error = null;
     private string _success = null;
 
+    private ApiUses  temp_use = null;
+
+    public IEnumerable<ApiUses> uses { get; set; } = null;
+ 
+    public IEnumerable<ApiUnit> allUnit { get; set; } = null;
+
+    public IEnumerable<ApiIngredient> allIngr { get; set; } = null;
+
     protected override async Task OnInitializedAsync()
     {
+        uses = await Http.GetFromJsonAsync<IEnumerable<ApiUses>>($"api/Uses/{recipeId}");
+        allUnit = await Http.GetFromJsonAsync<IEnumerable<ApiUnit>>("api/Unit");
+        allIngr = await Http.GetFromJsonAsync<IEnumerable<ApiIngredient>>("api/Ingr");
+
+        temp_use = new ApiUses()
+            {
+                RecipeId = Int32.Parse(recipeId),
+            };
+
         try
         {
             var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
@@ -84,11 +228,46 @@
         {
             _error = "An error occurred loading your account.";
         }
+
+        try{
+            String path = $"api/Recipe/{recipeId}";
+            _rec = await Http.GetFromJsonAsync<ApiRecipe>(path);
+        }catch (HttpRequestException e)
+        {
+            _error = "An error occurred loading your recipe.";
+        }
     }
 
+    private async Task ClickHandler(){
+         var response = await Http.DeleteAsync($"api/Uses/{_rec.Id}", item);
+    }
     private async Task HandleValidSubmit()
     {
-        
+            var response = await Http.PutAsJsonAsync($"api/Recipe/{_rec.Id}", _rec);
+            if (!response.IsSuccessStatusCode)
+            {
+                _error = "An error occurred updating your account";
+            }
+            else
+            {
+                _success = "Account updated!";
+            }
+    }
+
+    private async Task AddIngr(){
+        if (!(string.IsNullOrEmpty(temp_use.IngrName) || string.IsNullOrEmpty(temp_use.UnitName)))
+        {
+            var response = await Http.PostAsJsonAsync($"api/Uses/", temp_use);
+            if (!response.IsSuccessStatusCode)
+            {
+                _error = "An error occurred updating your recipe";
+            }
+            else
+            {
+                Console.WriteLine("hehe");
+                uses = await Http.GetFromJsonAsync<IEnumerable<ApiUses>>($"api/Uses/{recipeId}");
+            }
+        }
     }
 
 }
