@@ -10,12 +10,7 @@
     <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
 </form>
 
-<div class="list-group">
-    @for (var i = 1; i < 8; i++)
-    {
-        <RecipeCard Id=@i></RecipeCard>
-    }
-</div>
+<RecipeListView></RecipeListView>
 
 @code {
 

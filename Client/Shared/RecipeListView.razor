@@ -1,0 +1,47 @@
+﻿@using RecipEase.Client.Shared.Util
+@using RecipEase.Shared.Models.Api
+@inject IHttpClientFactory ClientFactory
+
+@if (Recipes != null)
+{
+    <div class="list-group">
+        @foreach (var recipe in Recipes)
+        {
+            <RecipeCard Recipe="@recipe"></RecipeCard>
+            @ChildContent
+        }
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    /// User id to filter recipes by.
+    [Parameter]
+    public string UserId { get; set; }
+
+    private List<ApiRecipe> Recipes { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var client = Auth.GetNoAuthHttpClient(ClientFactory);
+
+        var query = new List<string>();
+
+        if (UserId != null)
+        {
+            query.Add($"userId={UserId}");
+        }
+
+        var uriBuilder = new UriBuilder(client.BaseAddress)
+        {
+            Path = "api/Recipe",
+            Query = string.Join("&", query)
+        };
+
+        Recipes = await client.GetFromJsonAsync<List<ApiRecipe>>(uriBuilder.ToString());
+    }
+
+}
