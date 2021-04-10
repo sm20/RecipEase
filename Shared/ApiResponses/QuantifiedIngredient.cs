@@ -42,6 +42,17 @@ namespace RecipEase.Shared.ApiResponses
             };
         }
 
+        public ApiIngrInShoppingList ToApiIngrInShoppingList(string userId)
+        {
+            return new()
+            {
+                Quantity = Quantity,
+                IngrName = Ingredient.Name,
+                UnitName = Unit.Name,
+                UserId = userId
+            };
+        }
+        
         protected bool Equals(QuantifiedIngredient other)
         {
             return Equals(Ingredient, other.Ingredient) && Equals(Unit, other.Unit) && Quantity == other.Quantity;
