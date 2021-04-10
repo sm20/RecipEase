@@ -31,7 +31,8 @@
             ShowSave="@false"
             ShowAdd="@true"
             ShowNewIngredient="@false"
-            UnitEditable="@false">
+            UnitEditable="@false"
+            OnAdd="@OnAddIngredientToShoppingList">
         </IngredientListView>
     </ul>
 
@@ -67,6 +68,8 @@
 
 @code {
 
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
     [Parameter]
     public string RawRecipeId { get; set; }
@@ -102,4 +105,14 @@
             }
     }
 
+    private async void OnAddIngredientToShoppingList(string ingredientName)
+    {
+        var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
+        if (userId == null) return;
+        var added = Ingredients[ingredientName]?.ToApiIngrInShoppingList(userId);
+        if (added != null)
+        {
+            var response = await Http.PostAsJsonAsync("api/IngrInShoppingList", added);
+        }
+    }
 }
