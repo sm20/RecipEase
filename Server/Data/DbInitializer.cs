@@ -42,12 +42,87 @@ namespace RecipEase.Server.Data
             await InitializeIngredients(context);
             await InitializeUnits(context);
             await InitializeSupplies(context);
+            await InitializeShoppingList(context);
 
             await InitializeRecipes(context);
             await InitializeRecipeRatings(context);
             await InitializeRecipeCollections(context);
             await InitializeUses(context);
             await InitializeRecipeCategories(context);
+
+            await context.SaveChangesAsync();
+        }
+
+        private static async Task InitializeShoppingList(RecipEaseContext context)
+        {
+            if (!context.ShoppingList.Any())
+            {
+                var shoppingLists = new[]
+                {
+                    new ShoppingList
+                    {
+                        Name = "My Shopping List",
+                        LastUpdate = DateTime.Now,
+                        UserId = _testCustomerId
+                    },
+                    new ShoppingList
+                    {
+                        Name = "My Shopping List",
+                        LastUpdate = DateTime.Now,
+                        UserId = _testCustomerId2
+                    },
+                    new ShoppingList
+                    {
+                        Name = "My Shopping List",
+                        LastUpdate = DateTime.Now,
+                        UserId = _testCustomerId3
+                    },
+                };
+                await context.ShoppingList.AddRangeAsync(shoppingLists);
+            }
+            
+            if (!context.IngrInShoppingList.Any())
+            {
+                var ingrInShoppingLists = new[]
+                {
+                    new IngrInShoppingList()
+                    {
+                        Quantity = 2,
+                        IngrName = Flour,
+                        UserId = _testCustomerId,
+                        UnitName = Grams
+                    },
+                    new IngrInShoppingList()
+                    {
+                        Quantity = 3,
+                        IngrName = GoatMilk,
+                        UserId = _testCustomerId,
+                        UnitName = Cups
+                    },
+                    new IngrInShoppingList()
+                    {
+                        Quantity = 100,
+                        IngrName = Flour,
+                        UserId = _testCustomerId2,
+                        UnitName = Grams
+                    },
+                    new IngrInShoppingList()
+                    {
+                        Quantity = 3,
+                        IngrName = Rice,
+                        UserId = _testCustomerId2,
+                        UnitName = Cups
+                    },
+                    new IngrInShoppingList()
+                    {
+                        Quantity = 5,
+                        IngrName = Flour,
+                        UserId = _testCustomerId3,
+                        UnitName = Cups
+                    },
+                };
+                await context.IngrInShoppingList.AddRangeAsync(ingrInShoppingLists);
+            }
 
             await context.SaveChangesAsync();
         }
