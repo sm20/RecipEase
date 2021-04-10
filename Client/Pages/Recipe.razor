@@ -3,6 +3,7 @@
 @inject HttpClient Http
 @using RecipEase.Client.Shared.Util
 @using RecipEase.Shared.ApiResponses
+@using System.Net
 @inject IHttpClientFactory ClientFactory
 
 @if (RecipeViewed != null)
@@ -23,6 +24,19 @@
     </p>
 
     <h2>Ingredients</h2>
+    @if (IngredientAdded == true)
+    {
+        <div class="alert alert-success">Ingredient added to <a href="Profile/ShoppingList">your shopping list</a>!</div>
+    }
+    @if (IngredientAlreadyInShoppingList)
+    {
+        <div class="alert alert-info">Ingredient already in <a href="Profile/ShoppingList">your shopping list</a>!</div>
+    }
+    @if (IngredientNotAdded == true)
+    {
+        <div class="alert alert-danger">Ingredient could not be added. You may need to <a href="authentication/login">login</a>.</div>
+    }
+
     <ul class="list-group list-group-flush mb-4">
         <IngredientListView
             Ingredients="@Ingredients"
@@ -80,6 +94,25 @@
 
     private Dictionary<string, QuantifiedIngredient> Ingredients { get; } = new();
 
+    private bool? _ingredientAdded;
+
+    private bool? IngredientAdded
+    {
+        get => _ingredientAdded;
+        set
+        {
+            IngredientNotAdded = !value;
+            if (value == true)
+            {
+                IngredientAlreadyInShoppingList = false;
+            }
+            _ingredientAdded = value;
+        }
+    }
+
+    private bool IngredientAlreadyInShoppingList { get; set; }
+
+    private bool? IngredientNotAdded { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -108,11 +141,27 @@
     private async void OnAddIngredientToShoppingList(string ingredientName)
     {
         var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
-        if (userId == null) return;
-        var added = Ingredients[ingredientName]?.ToApiIngrInShoppingList(userId);
-        if (added != null)
+        if (userId == null)
         {
-            var response = await Http.PostAsJsonAsync("api/IngrInShoppingList", added);
+            IngredientAdded = false;
+            return;
         }
+        var added = Ingredients[ingredientName]?.ToApiIngrInShoppingList(userId);
+        if (added == null)
+        {
+            IngredientAdded = false;
+            return;
+        }
+        var response = await Http.PostAsJsonAsync("api/IngrInShoppingList", added);
+        if (response.StatusCode == HttpStatusCode.Conflict)
+        {
+            IngredientAlreadyInShoppingList = true;
+        }
+        else
+        {
+            IngredientAdded = response.IsSuccessStatusCode;
+        }
+        StateHasChanged();
     }
+
 }

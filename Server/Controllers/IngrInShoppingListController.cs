@@ -168,7 +168,7 @@ namespace RecipEase.Server.Controllers
 
         private bool IngrInShoppingListExists(IngrInShoppingList i)
         {
-            return _context.ApiIngrInShoppingList.Any(e =>
+            return _context.IngrInShoppingList.Any(e =>
                 e.UserId == i.UserId && e.IngrName == i.IngrName && e.UnitName == i.UnitName);
         }
     }
