@@ -1,7 +1,37 @@
-﻿<h2>ShoppingList</h2>
+﻿@using RecipEase.Client.Shared.Util
+@using RecipEase.Shared.ApiResponses
+@using RecipEase.Shared.Models.Api
+@inject HttpClient Http
 
-<IngredientListView></IngredientListView>
+@if (_shoppingList != null)
+{
+    <h2>@_shoppingList.Name</h2>
+    <p>Last change: @_shoppingList.LastUpdate</p>
+    <p>Number of items: @_shoppingList.NumIngredients</p>
+
+    <IngredientListView Ingredients="@_ingredients"></IngredientListView>
+}
 
 @code {
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    private ApiShoppingList _shoppingList;
+    private Dictionary<string, QuantifiedIngredient> _ingredients;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
+        if (userId != null)
+        {
+            var shoppingListResponse = await Http.GetFromJsonAsync<ShoppingListResponse>("api/ShoppingList");
+            if (shoppingListResponse != null)
+            {
+                _shoppingList = shoppingListResponse.ShoppingList;
+                _ingredients = shoppingListResponse.Ingredients?.ToDictionary(ing => ing.Ingredient.Name, ing => ing);
+            }
+        }
+    }
 
 }
