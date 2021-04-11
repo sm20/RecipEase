@@ -2,13 +2,9 @@
 @using RecipEase.Shared.Models.Api
 @using Meal = RecipEase.Shared.Models.Meal
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@using System.Net
 @using RecipEase.Client.Shared.Util
-@using RecipEase.Shared
 @inject HttpClient Http
 @using Microsoft.AspNetCore.Authorization
-@using RecipEase.Shared
-@using System.Security.Claims
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @using RecipEase.Shared.ApiResponses
 @attribute [Authorize]
@@ -139,7 +135,7 @@
             {
                 Ingredient = await Http.GetFromJsonAsync<ApiIngredient>($"api/Ingr/{item.IngrName}"),
                 Quantity = item.Quantity,
-                Unit = await Http.GetFromJsonAsync<ApiUnit>($"api/IUnitngr/{item.UnitName}"),
+                Unit = await Http.GetFromJsonAsync<ApiUnit>($"api/Unit/{item.UnitName}"),
             });
         }
 

@@ -1,6 +1,8 @@
 ﻿@using RecipEase.Client.Shared.Util
 @using RecipEase.Shared.Models.Api
-@inject IHttpClientFactory ClientFactory
+@using Microsoft.AspNetCore.Authorization
+@inject HttpClient Http
+@attribute [Authorize]
 
 @if (Recipes != null)
 {
@@ -14,7 +16,7 @@
             @foreach (var recipe in Recipes)
             {
                 <RecipeCard Recipe="@recipe"></RecipeCard>
-                <EditButton Id="@recipe.Id.ToString()"/>
+                <EditButton Id="@recipe.Id.ToString()" OnDelete="@RefreshRecipes"/>
                 @ChildContent
             }
         }
@@ -47,7 +49,6 @@
 
     private async Task RefreshRecipes()
     {
-        var client = Auth.GetNoAuthHttpClient(ClientFactory);
 
         var query = new List<string>();
 
@@ -66,13 +67,14 @@
             query.Add($"categoryName={Category}");
         }
 
-        var uriBuilder = new UriBuilder(client.BaseAddress)
+        var uriBuilder = new UriBuilder(Http.BaseAddress)
         {
             Path = "api/Recipe",
             Query = string.Join("&", query)
         };
 
-        Recipes = await client.GetFromJsonAsync<List<ApiRecipe>>(uriBuilder.ToString());
+        Recipes = await Http.GetFromJsonAsync<List<ApiRecipe>>(uriBuilder.ToString());
+        StateHasChanged();
     }
 
     protected override async Task OnParametersSetAsync()
