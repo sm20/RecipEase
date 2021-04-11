@@ -1,85 +1,32 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecipEase.Server.Data;
+using RecipEase.Shared.Models;
 using RecipEase.Shared.Models.Api;
 
 namespace RecipEase.Server.Controllers
 {
     [Route("api/[controller]")]
     [Produces("application/json")]
-
     [ApiController]
+    [Authorize]
+    [ApiConventionType(typeof(DefaultApiConventions))]
     public class IngrInShoppingListController : ControllerBase
     {
         private readonly RecipEaseContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public IngrInShoppingListController(RecipEaseContext context)
+        public IngrInShoppingListController(RecipEaseContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
-        }
-
-        /// <summary>
-        /// Returns all the items in an user's shopping list
-        /// </summary>
-        /// <remarks>
-        ///
-        /// functionalities : Retrieves ingredient in a user's shopping list with according unit.
-        /// 
-        /// database: IngrInShoppingList, Customer
-        /// 
-        /// constraints: The authenticated user making this request must be the owner of the
-        /// shopping list.
-        /// 
-        /// query: select * IngrInShoppingList with UserId = id
-        /// 
-        /// </remarks>
-        /// <param name="id">id of the user who have the shopping list to converse to.</param>
-
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ApiIngrInShoppingList>> GetApiIngrInShoppingList(string id)
-        {
-            var apiIngrInShoppingList = await _context.ApiIngrInShoppingList.FindAsync(id);
-
-            if (apiIngrInShoppingList == null)
-            {
-                return NotFound();
-            }
-
-            return apiIngrInShoppingList;
-        }
-
-
-        /// <summary>
-        /// Returns the specific item in the IngrInShoppingList
-        /// </summary>
-        /// <remarks>
-        ///
-        /// functionalities : Retrieves an item ingredient with a specific userid ,ingredient and unit.
-        /// 
-        /// database: IngrInShoppingList, Customer
-        /// 
-        /// constraints: The authenticated user making this request must be the owner of the
-        /// shopping list.
-        /// 
-        /// query: select * IngrInShoppingList with UserId = id and IngrName = iname and UnitName = uname
-        /// 
-        /// </remarks>
-        [HttpGet]
-        public async Task<ActionResult<ApiIngrInShoppingList>> GetApiIngrInShoppingList(string id, string uname, string iname)
-        {
-            var apiIngrInShoppingList = await _context.ApiIngrInShoppingList.FindAsync(id);
-
-            if (apiIngrInShoppingList == null)
-            {
-                return NotFound();
-            }
-
-            return apiIngrInShoppingList;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
@@ -97,34 +44,38 @@ namespace RecipEase.Server.Controllers
         /// query: update * IngrInShoppingList set (some instance) where UserId = id and IngrName = iname and UnitName = uname
         /// 
         /// </remarks>
-
         [HttpPut]
         [Consumes("application/json")]
-        public async Task<IActionResult> PutApiIngrInShoppingList(string id, ApiIngrInShoppingList apiIngrInShoppingList)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
+        public async Task<IActionResult> PutIngrInShoppingList(ApiIngrInShoppingList apiIngredient)
         {
-            if (id != apiIngrInShoppingList.UserId)
+            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (apiIngredient.UserId != currentUserId)
             {
-                return BadRequest();
+                return Unauthorized();
             }
 
-            _context.Entry(apiIngrInShoppingList).State = EntityState.Modified;
-
+            var updatedIngredient = apiIngredient.ToIngrInShoppingList();
+            
+            _context.Entry(updatedIngredient).State = EntityState.Modified;
+        
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ApiIngrInShoppingListExists(id))
+                if (!IngrInShoppingListExists(updatedIngredient))
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
-            }
 
+                throw;
+            }
+        
             return NoContent();
         }
 
@@ -144,26 +95,26 @@ namespace RecipEase.Server.Controllers
         /// </remarks>
         [HttpPost]
         [Consumes("application/json")]
-        public async Task<ActionResult<ApiIngrInShoppingList>> PostApiIngrInShoppingList(ApiIngrInShoppingList apiIngrInShoppingList)
+        public async Task<ActionResult<ApiIngrInShoppingList>> PostIngrInShoppingList(
+            ApiIngrInShoppingList apiIngredient)
         {
-            _context.ApiIngrInShoppingList.Add(apiIngrInShoppingList);
+            var ingredient = apiIngredient.ToIngrInShoppingList();
+            _context.IngrInShoppingList.Add(ingredient);
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
-                if (ApiIngrInShoppingListExists(apiIngrInShoppingList.UserId))
+                if (IngrInShoppingListExists(ingredient))
                 {
                     return Conflict();
                 }
-                else
-                {
-                    throw;
-                }
-            }
 
-            return CreatedAtAction("GetApiIngrInShoppingList", new { id = apiIngrInShoppingList.UserId }, apiIngrInShoppingList);
+                throw;
+            }
+        
+            return Created("", apiIngredient);
         }
 
         /// <summary>
@@ -181,24 +132,44 @@ namespace RecipEase.Server.Controllers
         /// query: delete from IngrInShoppingList where userId = userId, ingrName = ingrName, unitName = unitName
         /// 
         /// </remarks>
-
         [HttpDelete]
-        public async Task<IActionResult> DeleteApiIngrInShoppingList(ApiIngrInShoppingList apiIngrInShoppingList)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
+        public async Task<IActionResult> DeleteIngrInShoppingList(ApiIngrInShoppingList ingredient)
         {
-            if (apiIngrInShoppingList == null)
+            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (ingredient.UserId != currentUserId)
             {
-                return NotFound();
+                return Unauthorized();
             }
 
-            _context.ApiIngrInShoppingList.Remove(apiIngrInShoppingList);
-            await _context.SaveChangesAsync();
+            var deletedIngredient = ingredient.ToIngrInShoppingList();
+
+            _context.Entry(deletedIngredient).State = EntityState.Deleted;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!IngrInShoppingListExists(deletedIngredient))
+                {
+                    return NotFound();
+                }
+
+                throw;
+            }
 
             return NoContent();
         }
 
-        private bool ApiIngrInShoppingListExists(string id)
+        private bool IngrInShoppingListExists(IngrInShoppingList i)
         {
-            return _context.ApiIngrInShoppingList.Any(e => e.UserId == id);
+            return _context.IngrInShoppingList.Any(e =>
+                e.UserId == i.UserId && e.IngrName == i.IngrName && e.UnitName == i.UnitName);
         }
     }
 }

@@ -2,12 +2,14 @@
 @using RecipEase.Shared.Models.Api
 @inject HttpClient Http
 @using RecipEase.Client.Shared.Util
+@using RecipEase.Shared.ApiResponses
+@using System.Net
 @inject IHttpClientFactory ClientFactory
 
-@if (RecipeViewed != null && uses != null)
+@if (RecipeViewed != null)
 {
-
-    <h1>@RecipeViewed.Name
+    <h1>
+        @RecipeViewed.Name
         <RatingAvgCalculated RecipeId="@RecipeId"></RatingAvgCalculated>
     </h1>
     <CascadingValue Value="@RawRecipeId">
@@ -22,16 +24,30 @@
     </p>
 
     <h2>Ingredients</h2>
+    @if (IngredientAdded == true)
+    {
+        <div class="alert alert-success">Ingredient added to <a href="Profile/ShoppingList">your shopping list</a>!</div>
+    }
+    @if (IngredientAlreadyInShoppingList)
+    {
+        <div class="alert alert-info">Ingredient already in <a href="Profile/ShoppingList">your shopping list</a>!</div>
+    }
+    @if (IngredientNotAdded == true)
+    {
+        <div class="alert alert-danger">Ingredient could not be added. You may need to <a href="authentication/login">login</a>.</div>
+    }
+
     <ul class="list-group list-group-flush mb-4">
-        @foreach (var item in uses)
-        {
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                @item.IngrName
-                <span class="text-black-50">@item.Quantity @item.UnitName</span>
-                <span class="text-black-50">@ingr[item].Rarity</span>
-                <AddButton></AddButton>
-            </li>
-        }
+        <IngredientListView
+            Ingredients="@Ingredients"
+            QuantityEditable="@false"
+            ShowDelete="@false"
+            ShowSave="@false"
+            ShowAdd="@true"
+            ShowNewIngredient="@false"
+            UnitEditable="@false"
+            OnAdd="@OnAddIngredientToShoppingList">
+        </IngredientListView>
     </ul>
 
     <h2>Nutrition</h2>
@@ -47,7 +63,7 @@
         <li>
             <p> <b>Protein:</b> @RecipeViewed.Protein mg. </p>
         </li>
-        
+
         <li>
             <p> <b>Sodium:</b> @RecipeViewed.Sodium mg. </p>
         </li>
@@ -66,37 +82,86 @@
 
 @code {
 
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
     [Parameter]
     public string RawRecipeId { get; set; }
-    
+
     private int RecipeId => int.Parse(RawRecipeId);
 
-    public ApiRecipe RecipeViewed { get; set; }
+    private ApiRecipe RecipeViewed { get; set; }
 
-    public IEnumerable<ApiUses> uses { get; set; }
+    private Dictionary<string, QuantifiedIngredient> Ingredients { get; } = new();
 
-    public IDictionary<ApiUses, ApiIngredient> ingr { get; set; }
-    
-    
+    private bool? _ingredientAdded;
 
+    private bool? IngredientAdded
+    {
+        get => _ingredientAdded;
+        set
+        {
+            IngredientNotAdded = !value;
+            if (value == true)
+            {
+                IngredientAlreadyInShoppingList = false;
+            }
+            _ingredientAdded = value;
+        }
+    }
 
+    private bool IngredientAlreadyInShoppingList { get; set; }
+
+    private bool? IngredientNotAdded { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        ingr = new Dictionary<ApiUses, ApiIngredient>();
         var client = Auth.GetNoAuthHttpClient(ClientFactory);
 
-
-        String path = $"api/Recipe/{RawRecipeId}";
+        var path = $"api/Recipe/{RawRecipeId}";
         RecipeViewed = await client.GetFromJsonAsync<ApiRecipe>(path);
-        uses = await client.GetFromJsonAsync<IEnumerable<ApiUses>>($"api/Uses/{RawRecipeId}");
-        foreach (ApiUses a in uses)
-        {
-            ApiIngredient i = await client.GetFromJsonAsync<ApiIngredient>($"api/Ingr/{a.IngrName}");
-            System.Console.WriteLine(i.GetType());
-            ingr.Add(a, i);
-        }
-
+        var uses = await client.GetFromJsonAsync<IEnumerable<ApiUses>>($"api/Uses/{RawRecipeId}");
+        if (uses != null)
+            foreach (var a in uses)
+            {
+                var i = await client.GetFromJsonAsync<ApiIngredient>($"api/Ingr/{a.IngrName}");
+                var unit = await client.GetFromJsonAsync<ApiUnit>($"api/Unit/{a.UnitName}");
+                if (i != null)
+                {
+                    Ingredients.Add(i.Name, new QuantifiedIngredient()
+                    {
+                        Ingredient = i,
+                        Quantity = a.Quantity,
+                        Unit = unit
+                    });
+                }
+            }
     }
+
+    private async void OnAddIngredientToShoppingList(string ingredientName)
+    {
+        var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
+        if (userId == null)
+        {
+            IngredientAdded = false;
+            return;
+        }
+        var added = Ingredients[ingredientName]?.ToApiIngrInShoppingList(userId);
+        if (added == null)
+        {
+            IngredientAdded = false;
+            return;
+        }
+        var response = await Http.PostAsJsonAsync("api/IngrInShoppingList", added);
+        if (response.StatusCode == HttpStatusCode.Conflict)
+        {
+            IngredientAlreadyInShoppingList = true;
+        }
+        else
+        {
+            IngredientAdded = response.IsSuccessStatusCode;
+        }
+        StateHasChanged();
+    }
+
 }

@@ -16,7 +16,8 @@ namespace RecipEase.Server.Data
 
         public static async Task<(User user, IdentityResult result)> CreateUser(UserManager<User> userManager,
             RecipEaseContext context,
-            AccountType accountType, string email, string password)
+            AccountType accountType, string email, string password, Supplier supplierInfo = null,
+            Customer customerInfo = null)
         {
             var user = new User {UserName = email, Email = email};
             var result = await userManager.CreateAsync(user, password);
@@ -24,13 +25,31 @@ namespace RecipEase.Server.Data
             switch (accountType)
             {
                 case AccountType.Customer:
-                    var customer = new Customer {UserId = user.Id};
+                    Customer customer;
+                    if (customerInfo != null)
+                    {
+                        customer = customerInfo;
+                        customer.UserId = user.Id;
+                    }
+                    else
+                    {
+                        customer = new Customer {UserId = user.Id};
+                    }
                     await context.Customer.AddAsync(customer);
                     await userManager.AddToRoleAsync(user, Role.Customer.ToString());
                     await context.SaveChangesAsync();
                     break;
                 case AccountType.Supplier:
-                    var supplier = new Supplier {UserId = user.Id};
+                    Supplier supplier;
+                    if (supplierInfo != null)
+                    {
+                        supplier = supplierInfo;
+                        supplier.UserId = user.Id;
+                    }
+                    else
+                    {
+                        supplier = new Supplier {UserId = user.Id};
+                    }
                     await context.Supplier.AddAsync(supplier);
                     await userManager.AddToRoleAsync(user, Role.Supplier.ToString());
                     await context.SaveChangesAsync();
@@ -38,6 +57,7 @@ namespace RecipEase.Server.Data
                 default:
                     throw new Exception("Account type not provided.");
             }
+
             return (user, result);
         }
     }

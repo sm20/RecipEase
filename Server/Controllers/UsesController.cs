@@ -54,6 +54,7 @@ namespace RecipEase.Server.Controllers
         /// A 'select*' query with a 'where' clause to find the list of ingredients
         /// used by a recipe,
         ///and their associated attributes, is performed.
+        /// <param name="id">The id of the recipe who's ingredients should be retrieved.</param>
         /// </remarks>
         [HttpGet("{id}")]
         public async Task<ActionResult<IEnumerable<ApiUses>>> GetApiUses(int id)

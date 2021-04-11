@@ -29,15 +29,17 @@
             <span>@quantifiedIngredient.Ingredient.Name</span>
             <div class="d-inline-flex">
                 <input
+                    disabled="@(!QuantityEditable)"
                     type="number"
                     class="form-control w-25"
                     placeholder="Amount"
                     @bind=@quantifiedIngredient.Quantity/>
-                <select class="form-control w-50">
+                <select class="form-control w-50" disabled="@(!UnitEditable)">
                     <option selected>@quantifiedIngredient.Unit.Name</option>
                 </select>
             </div>
             <span class="badge badge-primary badge-pill">@(quantifiedIngredient.Ingredient.Rarity?.ToString())</span>
+            <IngredientSuppliersButton IngredientName="@quantifiedIngredient.Ingredient.Name"></IngredientSuppliersButton>
             @if (ShowDelete)
             {
                 <TrashButton ClickHandler="@GetDeleteHandler(key)"></TrashButton>
@@ -59,6 +61,14 @@
     /// Handler to be called when the user saves their changes
     [Parameter]
     public EventCallback<MouseEventArgs> SaveHandler { get; set; }
+
+    /// Controls whether the quantity of each ingredient should be editable
+    [Parameter]
+    public bool QuantityEditable { get; set; } = true;
+
+    /// Controls whether the unit of each ingredient should be editable
+    [Parameter]
+    public bool UnitEditable { get; set; } = true;
 
     /// Controls whether the delete button should be shown next to each ingredient.
     [Parameter]
