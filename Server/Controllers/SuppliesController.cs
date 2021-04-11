@@ -31,6 +31,30 @@ namespace RecipEase.Server.Controllers
         }
 
         /// <summary>
+        /// Returns suppliers that supply an ingredient.
+        /// </summary>
+        /// <remarks>
+        ///
+        /// The suppliers are retrieved from the `Supplies` and `Supplier` tables
+        /// using `select` queries.
+        /// 
+        /// </remarks>
+        /// <param name="ingredientName">The name of the ingredient whose suppliers should be retrieved.</param>
+        [HttpGet("{ingredientName}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
+        public async Task<ActionResult<List<ApiSupplier>>> GetSuppliersOfIngredient(string ingredientName)
+        {
+            var query =
+                from supplies in _context.Supplies
+                join supplier in _context.Supplier on supplies.UserId equals supplier.UserId
+                where supplies.IngrName == ingredientName && supplies.Quantity > 0
+                select supplier.ToApiSupplier();
+            return await query.ToListAsync();
+        }
+
+        /// <summary>
         /// Returns ingredients supplied by a supplier.
         /// </summary>
         /// <remarks>

@@ -14,5 +14,15 @@ namespace RecipEase.Shared.Models
 
         [Required]
         public string Symbol { get; set; }
+        
+        public ApiUnit ToApiUnit()
+        {
+            return new()
+            {
+                Name = Name,
+                UnitType = UnitType,
+                Symbol = Symbol
+            };
+        }
     }
 }

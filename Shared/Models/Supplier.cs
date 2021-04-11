@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using RecipEase.Shared.Models.Api;
 
 namespace RecipEase.Shared.Models
 {
@@ -28,5 +29,18 @@ namespace RecipEase.Shared.Models
 
 
         public User User { get; set; }
+
+        public ApiSupplier ToApiSupplier()
+        {
+            return new()
+            {
+                Email = Email,
+                Website = Website,
+                PhoneNo = PhoneNo,
+                SupplierName = SupplierName,
+                UserId = UserId,
+                StoreVisitCount = StoreVisitCount
+            };
+        }
     }
 }

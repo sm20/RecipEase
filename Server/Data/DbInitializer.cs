@@ -42,12 +42,87 @@ namespace RecipEase.Server.Data
             await InitializeIngredients(context);
             await InitializeUnits(context);
             await InitializeSupplies(context);
+            await InitializeShoppingList(context);
 
             await InitializeRecipes(context);
             await InitializeRecipeRatings(context);
             await InitializeRecipeCollections(context);
             await InitializeUses(context);
             await InitializeRecipeCategories(context);
+
+            await context.SaveChangesAsync();
+        }
+
+        private static async Task InitializeShoppingList(RecipEaseContext context)
+        {
+            if (!context.ShoppingList.Any())
+            {
+                var shoppingLists = new[]
+                {
+                    new ShoppingList
+                    {
+                        Name = "My Shopping List",
+                        LastUpdate = DateTime.Now,
+                        UserId = _testCustomerId
+                    },
+                    new ShoppingList
+                    {
+                        Name = "My Shopping List",
+                        LastUpdate = DateTime.Now,
+                        UserId = _testCustomerId2
+                    },
+                    new ShoppingList
+                    {
+                        Name = "My Shopping List",
+                        LastUpdate = DateTime.Now,
+                        UserId = _testCustomerId3
+                    },
+                };
+                await context.ShoppingList.AddRangeAsync(shoppingLists);
+            }
+            
+            if (!context.IngrInShoppingList.Any())
+            {
+                var ingrInShoppingLists = new[]
+                {
+                    new IngrInShoppingList()
+                    {
+                        Quantity = 2,
+                        IngrName = Flour,
+                        UserId = _testCustomerId,
+                        UnitName = Grams
+                    },
+                    new IngrInShoppingList()
+                    {
+                        Quantity = 3,
+                        IngrName = GoatMilk,
+                        UserId = _testCustomerId,
+                        UnitName = Cups
+                    },
+                    new IngrInShoppingList()
+                    {
+                        Quantity = 100,
+                        IngrName = Flour,
+                        UserId = _testCustomerId2,
+                        UnitName = Grams
+                    },
+                    new IngrInShoppingList()
+                    {
+                        Quantity = 3,
+                        IngrName = Rice,
+                        UserId = _testCustomerId2,
+                        UnitName = Cups
+                    },
+                    new IngrInShoppingList()
+                    {
+                        Quantity = 5,
+                        IngrName = Flour,
+                        UserId = _testCustomerId3,
+                        UnitName = Cups
+                    },
+                };
+                await context.IngrInShoppingList.AddRangeAsync(ingrInShoppingLists);
+            }
 
             await context.SaveChangesAsync();
         }
@@ -439,41 +514,60 @@ namespace RecipEase.Server.Data
             var existingCustomer = await context.Customer.FirstOrDefaultAsync();
             if (existingCustomer == null)
             {
+                var customer1Info = new Customer()
+                {
+                    CustomerName = "Calum Sieppert",
+                    Age = 20,
+                    Weight = 160,
+                    FavMeal = Meal.Lunch,
+                };
                 var (customer, _) = await
                     Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        TestCustomerUsername, TestCustomerPassword);
+                        TestCustomerUsername, TestCustomerPassword, customerInfo: customer1Info);
                 _testCustomerId = customer.Id;
 
+                var customer2Info = new Customer()
+                {
+                    CustomerName = "Sajid Choudhry",
+                    Age = 20,
+                    Weight = 160,
+                    FavMeal = Meal.Dinner,
+                };
                 (customer, _) = await
                     Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        "c2@c2", "c2");
+                        "c2@c2", "c2", customerInfo: customer2Info);
                 _testCustomerId2 = customer.Id;
 
+                var customer3Info = new Customer()
+                {
+                    CustomerName = "Khoa Nguyen Tran Dang",
+                    Age = 20,
+                    Weight = 160,
+                    FavMeal = Meal.Breakfast,
+                };
                 (customer, _) = await
                     Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        "c3@c3", "c3");
+                        "c3@c3", "c3", customerInfo: customer3Info);
                 _testCustomerId3 = customer.Id;
             }
             else
             {
                 _testCustomerId = existingCustomer.UserId;
-
-                var (customer, _) = await
-                    Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        "c2@c2", "c2");
-                _testCustomerId2 = customer.Id;
-
-                (customer, _) = await
-                    Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        "c3@c3", "c3");
-                _testCustomerId3 = customer.Id;
             }
 
             var existingSupplier = await context.Supplier.FirstOrDefaultAsync();
             if (existingSupplier == null)
             {
+                var supplierInfo = new Supplier()
+                {
+                    Email = "business@business.com",
+                    Website = "https://example.com",
+                    PhoneNo = "123-456-7890",
+                    SupplierName = "A Business",
+                    StoreVisitCount = 3
+                };
                 var (supplier, _) = await Users.CreateUser(userManager, context, Users.AccountType.Supplier,
-                    TestSupplierUsername, TestSupplierPassword);
+                    TestSupplierUsername, TestSupplierPassword, supplierInfo: supplierInfo);
                 _testSupplierId = supplier.Id;
             }
             else
