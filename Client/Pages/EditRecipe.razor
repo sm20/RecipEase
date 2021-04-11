@@ -102,7 +102,8 @@
 
                 @foreach (var item in uses)
                 {
-                    <EditForm  Model="@item"  OnValidSubmit="@HandleValidSubmit"   class="w-50">
+                    
+                    <EditForm  Model="@item"     class="w-50" id = "@IdGenerator(item)">
 
                     <DataAnnotationsValidator/>
                     <ValidationSummary/>
@@ -117,8 +118,9 @@
                         </div>
 
                         <div class="col">
-                            <InputNumber id="Quantity" Min="0" class="form-control" @bind-Value="item.Quantity" />
+                            <InputNumber id="Quantity" Min="1" class="form-control" @bind-Value="item.Quantity" />
                         </div>
+                        
                        
                         <div class="col">
                             <InputSelect id="Unit" class="form-control" @bind-Value="item.UnitName" >
@@ -128,7 +130,12 @@
                                     }
                             </InputSelect>
                         </div>
-                        <div>
+
+                        <div class="col">
+                            <button type="button"  class="btn btn-outline-success" width="16" height="16" style="padding:5px 15px 5px 15px"> Change </button>
+                        </div>
+
+                        <div class ="col">
                             <TrashButton></TrashButton>
                         </div>
                     </div>
@@ -152,7 +159,7 @@
                         </div>
 
                         <div class="col">
-                            <InputNumber id="Quantity" Min="0" class="form-control" @bind-Value="temp_use.Quantity" />
+                            <InputNumber id="Quantity" Min="1" class="form-control" @bind-Value="temp_use.Quantity" />
                         </div>
                        
                         <div class="col">
@@ -194,6 +201,8 @@
     public IEnumerable<ApiUnit> allUnit { get; set; } = null;
 
     public IEnumerable<ApiIngredient> allIngr { get; set; } = null;
+
+    public String aId  = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -239,7 +248,7 @@
     }
 
     private async Task ClickHandler(){
-         var response = await Http.DeleteAsync($"api/Uses/{_rec.Id}", item);
+         @* var response = await Http.DeleteAsync($"api/Uses/{_rec.Id}", item); *@
     }
     private async Task HandleValidSubmit()
     {
@@ -254,8 +263,9 @@
             }
     }
 
+
     private async Task AddIngr(){
-        if (!(string.IsNullOrEmpty(temp_use.IngrName) || string.IsNullOrEmpty(temp_use.UnitName)))
+        if (!(string.IsNullOrEmpty(temp_use.IngrName) || string.IsNullOrEmpty(temp_use.UnitName) || temp_use.Quantity < 1))
         {
             var response = await Http.PostAsJsonAsync($"api/Uses/", temp_use);
             if (!response.IsSuccessStatusCode)
@@ -264,10 +274,13 @@
             }
             else
             {
-                Console.WriteLine("hehe");
                 uses = await Http.GetFromJsonAsync<IEnumerable<ApiUses>>($"api/Uses/{recipeId}");
             }
         }
     }
 
+    private String IdGenerator(ApiUses u){
+        String  id =   u.RecipeId.ToString() + "---" + u.UnitName + "---" + u.IngrName;
+        return id;
+    }
 }
