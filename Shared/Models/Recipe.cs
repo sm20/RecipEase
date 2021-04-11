@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using RecipEase.Shared.Models.Api;
 
 namespace RecipEase.Shared.Models
 {
@@ -31,11 +32,29 @@ namespace RecipEase.Shared.Models
         
 
         public Customer Author { get; set; }
-        
+
         public ICollection<RecipeInCategory> Categories { get; set; }
-        
+
         public ICollection<Uses> UsesIngredients { get; set; }
-        
+
         public ICollection<RecipeRating> Ratings { get; set; }
+
+        public ApiRecipe ToApiRecipe()
+        {
+            return new()
+            {
+                Id = Id,
+                Name = Name,
+                Steps = Steps,
+                Cholesterol = Cholesterol,
+                Fat = Fat,
+                Sodium = Sodium,
+                Protein = Protein,
+                Carbs = Carbs,
+                Calories = Calories,
+                AuthorId = AuthorId,
+                AverageRating = 5
+            };
+        }
     }
 }

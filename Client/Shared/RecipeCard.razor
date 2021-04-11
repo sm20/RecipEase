@@ -10,7 +10,7 @@
     >
         <div class="d-flex w-100 justify-content-between">
             <h5 class="mb-1">@Recipe.Name</h5>
-            <RatingAvgCalculated RecipeId="@Id"></RatingAvgCalculated>
+            <RatingAvgCalculated RecipeId="@Recipe.Id"></RatingAvgCalculated>
         </div>
         <p
             class="mb-1"
@@ -28,16 +28,21 @@
     [Parameter]
     public int Id { get; set; }
 
-    private ApiRecipe Recipe { get; set; }
+    [Parameter]
+    public ApiRecipe Recipe { get; set; }
 
     private ApiCustomer Author { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         var client = Auth.GetNoAuthHttpClient(ClientFactory);
-        var path = $"api/Recipe/{Id}";
-        Recipe = await client.GetFromJsonAsync<ApiRecipe>(path);
-
+        
+        if (Recipe == null)
+        {
+            var path = $"api/Recipe/{Id}";
+            Recipe = await client.GetFromJsonAsync<ApiRecipe>(path);
+        }
+        
         if (Recipe != null && Recipe.AuthorId != null)
         {
             var uriBuilder = new UriBuilder(client.BaseAddress)

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecipEase.Server.Data;
@@ -54,20 +53,7 @@ namespace RecipEase.Server.Controllers
                 return NotFound();
             }
 
-            return new ApiRecipe()
-            {
-                Id = recipe.Id,
-                Name = recipe.Name,
-                Steps = recipe.Steps,
-                Cholesterol = recipe.Cholesterol,
-                Fat = recipe.Fat,
-                Sodium = recipe.Sodium,
-                Protein = recipe.Protein,
-                Carbs = recipe.Carbs,
-                Calories = recipe.Calories,
-                AuthorId = recipe.AuthorId,
-                AverageRating = 5
-            };
+            return recipe.ToApiRecipe();
         }
 
         /// <summary>
@@ -99,9 +85,29 @@ namespace RecipEase.Server.Controllers
         /// <param name="userId">Get only recipes authored by the customer with this
         /// id.</param>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Recipe>>> GetRecipes(string titleMatch, string categoryName, string userId)
+        public async Task<ActionResult<IEnumerable<ApiRecipe>>> GetRecipes(string titleMatch, string categoryName,
+            string userId)
         {
-            return await _context.Recipe.ToListAsync();
+            var query = _context.Recipe.AsQueryable();
+            if (userId != null)
+            {
+                query = query.Where(recipe => recipe.AuthorId == userId);
+            }
+
+            if (titleMatch != null)
+            {
+                query = query.Where(recipe => recipe.Name.ToLower().Contains(titleMatch.ToLower()));
+            }
+
+            if (categoryName != null)
+            {
+                query = from recipe in query
+                    join cat in _context.RecipeInCategory on recipe.Id equals cat.RecipeId
+                    where cat.CategoryName == categoryName
+                    select recipe;
+            }
+
+            return await query.Select(recipe => recipe.ToApiRecipe()).ToListAsync();
         }
 
         /// <summary>
@@ -188,7 +194,7 @@ namespace RecipEase.Server.Controllers
             await _context.SaveChangesAsync();
             int id = apiRecipe.Id;
             Console.WriteLine(id);
-            return CreatedAtAction("GetRecipes", new { id = apiRecipe.Id }, apiRecipe);
+            return CreatedAtAction("GetRecipes", new {id = apiRecipe.Id}, apiRecipe);
         }
 
         /// <summary>
