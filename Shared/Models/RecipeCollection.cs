@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using RecipEase.Shared.Models.Api;
 
 namespace RecipEase.Shared.Models
 {
@@ -27,5 +28,16 @@ namespace RecipEase.Shared.Models
         public Customer Customer { get; set; }
         
         public ICollection<RecipeInCollection> Recipes { get; set; }
+
+        public ApiRecipeCollection ToApiRecipeCollection()
+        {
+            return new()
+            {
+                Description = Description,
+                Title = Title,
+                Visibility = Visibility,
+                UserId = UserId
+            };
+        }
     }
 }

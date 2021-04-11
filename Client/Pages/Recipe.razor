@@ -1,4 +1,4 @@
-﻿@page "/Recipe/{recipeId}"
+﻿@page "/Recipe/{RawRecipeId}"
 @using RecipEase.Shared.Models.Api
 @inject HttpClient Http
 @using RecipEase.Client.Shared.Util
@@ -8,13 +8,12 @@
 {
 
     <h1>@RecipeViewed.Name
-        <CascadingValue Value="@RecipeId">
-            <RatingAvgCalculated></RatingAvgCalculated>
-        </CascadingValue>
+        <RatingAvgCalculated RecipeId="@RecipeId"></RatingAvgCalculated>
     </h1>
-    <CascadingValue Value="@RecipeId">
+    <CascadingValue Value="@RawRecipeId">
         <RateRecipeComponent></RateRecipeComponent>
     </CascadingValue>
+    <AddToCollectionButton RecipeId="@RecipeId"></AddToCollectionButton>
     <br>
     <br>
     <h2>Directions</h2>
@@ -69,7 +68,9 @@
 
 
     [Parameter]
-    public string RecipeId { get; set; } = "default value";
+    public string RawRecipeId { get; set; }
+    
+    private int RecipeId => int.Parse(RawRecipeId);
 
     public ApiRecipe RecipeViewed { get; set; }
 
@@ -87,9 +88,9 @@
         var client = Auth.GetNoAuthHttpClient(ClientFactory);
 
 
-        String path = $"api/Recipe/{RecipeId}";
+        String path = $"api/Recipe/{RawRecipeId}";
         RecipeViewed = await client.GetFromJsonAsync<ApiRecipe>(path);
-        uses = await client.GetFromJsonAsync<IEnumerable<ApiUses>>($"api/Uses/{RecipeId}");
+        uses = await client.GetFromJsonAsync<IEnumerable<ApiUses>>($"api/Uses/{RawRecipeId}");
         foreach (ApiUses a in uses)
         {
             ApiIngredient i = await client.GetFromJsonAsync<ApiIngredient>($"api/Ingr/{a.IngrName}");

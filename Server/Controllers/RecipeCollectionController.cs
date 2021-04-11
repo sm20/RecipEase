@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecipEase.Server.Data;
+using RecipEase.Shared.Models;
 using RecipEase.Shared.Models.Api;
 
 namespace RecipEase.Server.Controllers
@@ -17,10 +20,12 @@ namespace RecipEase.Server.Controllers
     public class RecipeCollectionController : ControllerBase
     {
         private readonly RecipEaseContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public RecipeCollectionController(RecipEaseContext context)
+        public RecipeCollectionController(RecipEaseContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
@@ -41,7 +46,8 @@ namespace RecipEase.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ApiRecipeCollection>>> GetRecipeCollection(string userId)
         {
-            return await this._context.ApiRecipeCollection.ToListAsync();
+            var query = from c in _context.RecipeCollection where c.UserId == userId select c;
+            return await query.Select(c => c.ToApiRecipeCollection()).ToListAsync();
         }
 
         /// <summary>
@@ -66,17 +72,33 @@ namespace RecipEase.Server.Controllers
         ///
         /// </remarks>
         [HttpPost]
+        [Authorize]
         [Consumes("application/json")]
         public async Task<ActionResult<ApiRecipeCollection>> PostRecipeCollection(ApiRecipeCollection apiRecipeCollection)
         {
-            _context.ApiRecipeCollection.Add(apiRecipeCollection);
+            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            
+            if (currentUserId != apiRecipeCollection.UserId)
+            {
+                return Unauthorized();
+            }
+
+            var collection = new RecipeCollection
+            {
+                UserId = apiRecipeCollection.UserId,
+                Title = apiRecipeCollection.Title,
+                Description = apiRecipeCollection.Description,
+                Visibility = apiRecipeCollection.Visibility
+            };
+            _context.RecipeCollection.Add(collection);
+
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
-                if (RecipeCollectionExists(apiRecipeCollection.UserId))
+                if (RecipeCollectionExists(collection))
                 {
                     return Conflict();
                 }
@@ -86,7 +108,7 @@ namespace RecipEase.Server.Controllers
                 }
             }
 
-            return CreatedAtAction("GetApiRecipeCollection", new { id = apiRecipeCollection.UserId }, apiRecipeCollection);
+            return CreatedAtAction("GetRecipeCollection", new { id = apiRecipeCollection.UserId }, apiRecipeCollection);
         }
 
         /// <summary>
@@ -111,24 +133,34 @@ namespace RecipEase.Server.Controllers
         ///
         /// </remarks>
         /// <param name="title">The title of the recipe collection to delete.</param>
-        [HttpDelete("{title}")]
+        [HttpDelete]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
         public async Task<IActionResult> DeleteRecipeCollection(string title)
         {
-            var apiRecipeCollection = await _context.ApiRecipeCollection.FindAsync(title);
-            if (apiRecipeCollection == null)
+            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var query = from c in _context.RecipeCollection
+                where c.UserId == currentUserId && c.Title == title
+                select c;
+            var recipeCollection = await query.FirstOrDefaultAsync();
+            
+            if (recipeCollection == null)
             {
                 return NotFound();
             }
 
-            _context.ApiRecipeCollection.Remove(apiRecipeCollection);
+            _context.RecipeCollection.Remove(recipeCollection);
             await _context.SaveChangesAsync();
 
             return Ok();
         }
 
-        private bool RecipeCollectionExists(string id)
+        private bool RecipeCollectionExists(RecipeCollection c)
         {
-            return _context.ApiRecipeCollection.Any(e => e.UserId == id);
+            return _context.RecipeCollection.Any(e => e.UserId == c.UserId && e.Title == c.Title);
         }
     }
 }

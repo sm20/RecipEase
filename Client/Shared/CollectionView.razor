@@ -1,0 +1,103 @@
+﻿@using RecipEase.Shared.Models.Api
+@using RecipEase.Client.Shared.Util
+@inject HttpClient Http
+
+@if (Collection != null)
+{
+    <details class="card mb-4">
+        <summary class="card-header d-flex align-items-center justify-content-between" @onclick="OnCollectionExpand">
+            <span style="text-decoration: underline">@Collection.Title</span>
+            <TrashButton ClickHandler="HandleCollectionDelete"></TrashButton>
+        </summary>
+        @if (RecipesInCollection != null)
+        {
+            <div class="card-body">
+                @if (RecipesInCollection.Count == 0)
+                {
+                    @("No recipes in this collection!");
+                }
+                else
+                {
+                    <div class="list-group">
+                        @foreach (var recipeInCollection in RecipesInCollection)
+                        {
+                            <RecipeCard Id="@recipeInCollection.RecipeId" @key="recipeInCollection.RecipeId"></RecipeCard>
+                            <TrashButton ClickHandler="GetRecipeRemoveHandler(recipeInCollection.RecipeId)"></TrashButton>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </details>
+}
+
+@code {
+    private const string Endpoint = "api/RecipeInCollection";
+    
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    [Parameter]
+    public ApiRecipeCollection Collection { get; set; }
+
+    /// Called when the delete button is clicked for this collection, gets passed the collection.
+    [Parameter]
+    public Func<ApiRecipeCollection, Task> OnDelete { get; set; }
+
+    private List<ApiRecipeInCollection> RecipesInCollection { get; set; }
+
+    private bool Expanded { get; set; }
+
+    private async Task OnCollectionExpand(MouseEventArgs args)
+    {
+        if (Expanded)
+        {
+            return;
+        }
+        
+        var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
+        if (userId != null)
+        {
+            var uriBuilder = new UriBuilder(Http.BaseAddress)
+            {
+                Path = Endpoint,
+                Query = $"userId={userId}&collectionTitle={Collection.Title}"
+            };
+            RecipesInCollection = await Http.GetFromJsonAsync<List<ApiRecipeInCollection>>(uriBuilder.ToString());
+            if (RecipesInCollection != null)
+            {
+                Expanded = true;
+            }
+        }
+    }
+    
+    private void HandleCollectionDelete()
+    {
+        OnDelete(Collection);
+    }
+
+    private EventCallback GetRecipeRemoveHandler(int recipeId)
+    {
+        async Task Handler(object _) => await HandleRecipeRemove(recipeId);
+        return new EventCallback(this, (Func<object,Task>) Handler);
+    }
+    
+    private async Task HandleRecipeRemove(int recipeId)
+    {
+        var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
+        if (userId != null)
+        {
+            var uriBuilder = new UriBuilder(Http.BaseAddress)
+            {
+                Path = Endpoint,
+                Query = $"recipeId={recipeId}&collectionTitle={Collection.Title}"
+            };
+            var response = await Http.DeleteAsync(uriBuilder.ToString());
+            if (response.IsSuccessStatusCode)
+            {
+                RecipesInCollection = RecipesInCollection.Where(r => r.RecipeId != recipeId).ToList();
+                StateHasChanged();
+            }
+        }
+    }
+}
