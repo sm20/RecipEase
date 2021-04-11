@@ -9,16 +9,22 @@
     <p>Last change: @_shoppingList.LastUpdate</p>
     <p>Number of items: @_shoppingList.NumIngredients</p>
 
-    <IngredientListView Ingredients="@_ingredients"></IngredientListView>
+    <IngredientListEditor
+        IngredientList="@_ingredients"
+        DeleteIngredient="@DeleteIngredient"
+        AddIngredient="@AddIngredient"
+        UpdateIngredient="@UpdateIngredient"/>
 }
 
 @code {
+
+    private const string ApiEndpoint = "api/IngrInShoppingList";
 
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
     private ApiShoppingList _shoppingList;
-    private Dictionary<string, QuantifiedIngredient> _ingredients;
+    private List<QuantifiedIngredient> _ingredients;
 
     protected override async Task OnInitializedAsync()
     {
@@ -29,9 +35,36 @@
             if (shoppingListResponse != null)
             {
                 _shoppingList = shoppingListResponse.ShoppingList;
-                _ingredients = shoppingListResponse.Ingredients?.ToDictionary(ing => ing.Ingredient.Name, ing => ing);
+                _ingredients = shoppingListResponse.Ingredients;
             }
         }
     }
 
+    private async Task<HttpResponseMessage> DeleteIngredient(string userId, QuantifiedIngredient removedIngredient)
+    {
+        var removedApiIngrInShoppingList = removedIngredient.ToApiIngrInShoppingList(userId);
+        var uriBuilder = new UriBuilder(Http.BaseAddress)
+        {
+            Path = ApiEndpoint
+        };
+        var request = new HttpRequestMessage
+        {
+            Content = JsonContent.Create(removedApiIngrInShoppingList),
+            Method = HttpMethod.Delete,
+            RequestUri = uriBuilder.Uri
+        };
+        return await Http.SendAsync(request);
+    }
+
+    private async Task<HttpResponseMessage> AddIngredient(string userId, QuantifiedIngredient addedIngredient)
+    {
+        var newIngredient = addedIngredient.ToApiIngrInShoppingList(userId);
+        return await Http.PostAsJsonAsync(ApiEndpoint, newIngredient);
+    }
+
+    private async Task<HttpResponseMessage> UpdateIngredient(string userId, QuantifiedIngredient updatedIngredient)
+    {
+        var updated = updatedIngredient.ToApiIngrInShoppingList(userId);
+        return await Http.PutAsJsonAsync(ApiEndpoint, updated);
+    }
 }
