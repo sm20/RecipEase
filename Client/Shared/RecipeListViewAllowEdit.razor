@@ -1,0 +1,83 @@
+﻿@using RecipEase.Client.Shared.Util
+@using RecipEase.Shared.Models.Api
+@inject IHttpClientFactory ClientFactory
+
+@if (Recipes != null)
+{
+    <div class="list-group">
+        @if (Recipes.Count == 0)
+        {
+            @("Sorry, no recipes here!")
+        }
+        else
+        {
+            @foreach (var recipe in Recipes)
+            {
+                <RecipeCard Recipe="@recipe"></RecipeCard>
+                <EditButton Id="@recipe.Id.ToString()"/>
+                @ChildContent
+            }
+        }
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    /// User id to filter recipes by.
+    [Parameter]
+    public string UserId { get; set; }
+
+    /// Title to filter recipes by.
+    [Parameter]
+    public string Title { get; set; }
+
+    /// Category to filter recipes by.
+    [Parameter]
+    public string Category { get; set; }
+
+    private List<ApiRecipe> Recipes { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshRecipes();
+    }
+
+    private async Task RefreshRecipes()
+    {
+        var client = Auth.GetNoAuthHttpClient(ClientFactory);
+
+        var query = new List<string>();
+
+        if (UserId != null)
+        {
+            query.Add($"userId={UserId}");
+        }
+
+        if (Title != null)
+        {
+            query.Add($"titleMatch={Title}");
+        }
+
+        if (Category != null)
+        {
+            query.Add($"categoryName={Category}");
+        }
+
+        var uriBuilder = new UriBuilder(client.BaseAddress)
+        {
+            Path = "api/Recipe",
+            Query = string.Join("&", query)
+        };
+
+        Recipes = await client.GetFromJsonAsync<List<ApiRecipe>>(uriBuilder.ToString());
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await RefreshRecipes();
+    }
+
+}
