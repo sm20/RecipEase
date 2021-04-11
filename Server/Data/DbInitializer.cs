@@ -25,6 +25,11 @@ namespace RecipEase.Server.Data
         private const string TestCustomerPassword = "c";
         private const string TestSupplierUsername = "s@s";
         private const string TestSupplierPassword = "s";
+        private const string Flour = "Flour";
+        private const string Grams = "Grams";
+        private const string Cups = "Cups";
+        private const string Rice = "Rice";
+        private const string GoatMilk = "Goat Milk";
 
         public static async Task Initialize(RecipEaseContext context, UserManager<User> userManager,
             RoleManager<IdentityRole> roleManager)
@@ -34,11 +39,90 @@ namespace RecipEase.Server.Data
             await InitializeRoles(roleManager);
             await InitializeUsers(context, userManager);
 
+            await InitializeIngredients(context);
+            await InitializeUnits(context);
             await InitializeSupplies(context);
+            await InitializeShoppingList(context);
 
             await InitializeRecipes(context);
             await InitializeRecipeRatings(context);
             await InitializeRecipeCollections(context);
+            await InitializeUses(context);
+            await InitializeRecipeCategories(context);
+
+            await context.SaveChangesAsync();
+        }
+
+        private static async Task InitializeShoppingList(RecipEaseContext context)
+        {
+            if (!context.ShoppingList.Any())
+            {
+                var shoppingLists = new[]
+                {
+                    new ShoppingList
+                    {
+                        Name = "My Shopping List",
+                        LastUpdate = DateTime.Now,
+                        UserId = _testCustomerId
+                    },
+                    new ShoppingList
+                    {
+                        Name = "My Shopping List",
+                        LastUpdate = DateTime.Now,
+                        UserId = _testCustomerId2
+                    },
+                    new ShoppingList
+                    {
+                        Name = "My Shopping List",
+                        LastUpdate = DateTime.Now,
+                        UserId = _testCustomerId3
+                    },
+                };
+                await context.ShoppingList.AddRangeAsync(shoppingLists);
+            }
+            
+            if (!context.IngrInShoppingList.Any())
+            {
+                var ingrInShoppingLists = new[]
+                {
+                    new IngrInShoppingList()
+                    {
+                        Quantity = 2,
+                        IngrName = Flour,
+                        UserId = _testCustomerId,
+                        UnitName = Grams
+                    },
+                    new IngrInShoppingList()
+                    {
+                        Quantity = 3,
+                        IngrName = GoatMilk,
+                        UserId = _testCustomerId,
+                        UnitName = Cups
+                    },
+                    new IngrInShoppingList()
+                    {
+                        Quantity = 100,
+                        IngrName = Flour,
+                        UserId = _testCustomerId2,
+                        UnitName = Grams
+                    },
+                    new IngrInShoppingList()
+                    {
+                        Quantity = 3,
+                        IngrName = Rice,
+                        UserId = _testCustomerId2,
+                        UnitName = Cups
+                    },
+                    new IngrInShoppingList()
+                    {
+                        Quantity = 5,
+                        IngrName = Flour,
+                        UserId = _testCustomerId3,
+                        UnitName = Cups
+                    },
+                };
+                await context.IngrInShoppingList.AddRangeAsync(ingrInShoppingLists);
+            }
 
             await context.SaveChangesAsync();
         }
@@ -90,6 +174,7 @@ namespace RecipEase.Server.Data
                 await context.Recipe.AddRangeAsync(recipes);
                 await context.SaveChangesAsync();
             }
+
             var allRecipes = await context.Recipe.ToListAsync();
             if (allRecipes.Count == 3)
             {
@@ -98,7 +183,121 @@ namespace RecipEase.Server.Data
                 _recipe2Id = allRecipes[2].Id;
             }
         }
-        
+
+        private static async Task InitializeRecipeCategories(RecipEaseContext context)
+        {
+            var breakfast = "Breakfast";
+            var lunch = "Lunch";
+            var dinner = "Dinner";
+            if (!context.RecipeCategory.Any())
+            {
+                var categories = new[]
+                {
+                    new RecipeCategory
+                    {
+                        Name = breakfast,
+                        AverageCaloriesCatg = 500,
+                        TotalInCatg = 1,
+                    },
+                    new RecipeCategory
+                    {
+                        Name = lunch,
+                        AverageCaloriesCatg = 600,
+                        TotalInCatg = 1
+                    },
+                    new RecipeCategory
+                    {
+                        Name = dinner,
+                        AverageCaloriesCatg = 700,
+                        TotalInCatg = 1,
+                    },
+                };
+
+                await context.RecipeCategory.AddRangeAsync(categories);
+                await context.SaveChangesAsync();
+            }
+
+            if (!context.RecipeInCategory.Any())
+            {
+                var recipeInCategories = new[]
+                {
+                    new RecipeInCategory
+                    {
+                        RecipeId = _recipe0Id,
+                        CategoryName = breakfast
+                    },
+                    new RecipeInCategory
+                    {
+                        RecipeId = _recipe1Id,
+                        CategoryName = lunch
+                    },
+                    new RecipeInCategory
+                    {
+                        RecipeId = _recipe2Id,
+                        CategoryName = dinner
+                    },
+                };
+
+                await context.RecipeInCategory.AddRangeAsync(recipeInCategories);
+                await context.SaveChangesAsync();
+            }
+        }
+
+        private static async Task InitializeUses(RecipEaseContext context)
+        {
+            if (!context.Uses.Any())
+            {
+                var uses = new[]
+                {
+                    new Uses
+                    {
+                        RecipeId = _recipe0Id,
+                        IngrName = Flour,
+                        UnitName = Grams,
+                        Quantity = 5
+                    },
+                    new Uses
+                    {
+                        RecipeId = _recipe1Id,
+                        IngrName = Flour,
+                        UnitName = Grams,
+                        Quantity = 100
+                    },
+                    new Uses
+                    {
+                        RecipeId = _recipe2Id,
+                        IngrName = Flour,
+                        UnitName = Grams,
+                        Quantity = 6
+                    },
+                    new Uses
+                    {
+                        RecipeId = _recipe0Id,
+                        IngrName = GoatMilk,
+                        UnitName = Cups,
+                        Quantity = 10
+                    },
+                    new Uses
+                    {
+                        RecipeId = _recipe1Id,
+                        IngrName = Rice,
+                        UnitName = Cups,
+                        Quantity = 4
+                    },
+                    new Uses
+                    {
+                        RecipeId = _recipe2Id,
+                        IngrName = Rice,
+                        UnitName = Grams,
+                        Quantity = 200
+                    },
+                };
+
+                await context.Uses.AddRangeAsync(uses);
+                await context.SaveChangesAsync();
+            }
+        }
+
         private static async Task InitializeRecipeCollections(RecipEaseContext context)
         {
             if (!context.RecipeCollection.Any())
@@ -148,7 +347,7 @@ namespace RecipEase.Server.Data
                         CollectionUserId = _testCustomerId,
                     },
                 };
-                
+
                 await context.RecipeCollection.AddRangeAsync(recipeCollections);
                 await context.RecipeInCollection.AddRangeAsync(recipeInCollections);
                 await context.SaveChangesAsync();
@@ -215,69 +414,14 @@ namespace RecipEase.Server.Data
                         RecipeId = _recipe2Id,
                         UserId = _testCustomerId3
                     },
-
                 };
-                
+
                 await context.RecipeRating.AddRangeAsync(recipeRatings);
             }
         }
 
         private static async Task InitializeSupplies(RecipEaseContext context)
         {
-            const string flour = "Flour";
-            const string grams = "Grams";
-            const string cups = "Cups";
-            const string rice = "Rice";
-            const string goatMilk = "Goat Milk";
-
-            if (!context.Ingredient.Any())
-            {
-                var ingredients = new[]
-                {
-                    new Ingredient()
-                    {
-                        Name = flour,
-                        Rarity = Rarity.Common,
-                        WeightToVolRatio = 0.5
-                    },
-                    new Ingredient()
-                    {
-                        Name = rice,
-                        Rarity = Rarity.Common,
-                        WeightToVolRatio = 0.9
-                    },
-                    new Ingredient()
-                    {
-                        Name = goatMilk,
-                        Rarity = Rarity.Rare,
-                        WeightToVolRatio = 0.6
-                    },
-                };
-
-                await context.Ingredient.AddRangeAsync(ingredients);
-            }
-
-            if (!context.Unit.Any())
-            {
-                var units = new[]
-                {
-                    new Unit()
-                    {
-                        Name = grams,
-                        Symbol = "g",
-                        UnitType = UnitType.Mass
-                    },
-                    new Unit()
-                    {
-                        Name = cups,
-                        Symbol = "cups",
-                        UnitType = UnitType.Volume
-                    },
-                };
-
-                await context.Unit.AddRangeAsync(units);
-            }
-
             if (!context.Supplies.Any())
             {
                 var supplies = new[]
@@ -286,26 +430,82 @@ namespace RecipEase.Server.Data
                     {
                         UserId = _testSupplierId,
                         Quantity = 5,
-                        IngrName = flour,
-                        UnitName = grams,
+                        IngrName = Flour,
+                        UnitName = Grams,
                     },
                     new Supplies()
                     {
                         UserId = _testSupplierId,
                         Quantity = 100,
-                        IngrName = rice,
-                        UnitName = grams,
+                        IngrName = Rice,
+                        UnitName = Grams,
                     },
                     new Supplies()
                     {
                         UserId = _testSupplierId,
                         Quantity = 10,
-                        IngrName = goatMilk,
-                        UnitName = cups,
+                        IngrName = GoatMilk,
+                        UnitName = Cups,
                     }
                 };
 
                 await context.Supplies.AddRangeAsync(supplies);
+                await context.SaveChangesAsync();
+            }
+        }
+
+        private static async Task InitializeUnits(RecipEaseContext context)
+        {
+            if (!context.Unit.Any())
+            {
+                var units = new[]
+                {
+                    new Unit()
+                    {
+                        Name = Grams,
+                        Symbol = "g",
+                        UnitType = UnitType.Mass
+                    },
+                    new Unit()
+                    {
+                        Name = Cups,
+                        Symbol = "cups",
+                        UnitType = UnitType.Volume
+                    },
+                };
+
+                await context.Unit.AddRangeAsync(units);
+                await context.SaveChangesAsync();
+            }
+        }
+
+        private static async Task InitializeIngredients(RecipEaseContext context)
+        {
+            if (!context.Ingredient.Any())
+            {
+                var ingredients = new[]
+                {
+                    new Ingredient()
+                    {
+                        Name = Flour,
+                        Rarity = Rarity.Common,
+                        WeightToVolRatio = 0.5
+                    },
+                    new Ingredient()
+                    {
+                        Name = Rice,
+                        Rarity = Rarity.Common,
+                        WeightToVolRatio = 0.9
+                    },
+                    new Ingredient()
+                    {
+                        Name = GoatMilk,
+                        Rarity = Rarity.Rare,
+                        WeightToVolRatio = 0.6
+                    },
+                };
+
+                await context.Ingredient.AddRangeAsync(ingredients);
             }
         }
 
@@ -314,41 +514,60 @@ namespace RecipEase.Server.Data
             var existingCustomer = await context.Customer.FirstOrDefaultAsync();
             if (existingCustomer == null)
             {
-                var (customer, _) = await 
+                var customer1Info = new Customer()
+                {
+                    CustomerName = "Calum Sieppert",
+                    Age = 20,
+                    Weight = 160,
+                    FavMeal = Meal.Lunch,
+                };
+                var (customer, _) = await
                     Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        TestCustomerUsername, TestCustomerPassword);     
+                        TestCustomerUsername, TestCustomerPassword, customerInfo: customer1Info);
                 _testCustomerId = customer.Id;
 
-                (customer, _) = await 
+                var customer2Info = new Customer()
+                {
+                    CustomerName = "Sajid Choudhry",
+                    Age = 20,
+                    Weight = 160,
+                    FavMeal = Meal.Dinner,
+                };
+                (customer, _) = await
                     Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        "c2@c2", "c2");     
+                        "c2@c2", "c2", customerInfo: customer2Info);
                 _testCustomerId2 = customer.Id;
 
-                (customer, _) = await 
+                var customer3Info = new Customer()
+                {
+                    CustomerName = "Khoa Nguyen Tran Dang",
+                    Age = 20,
+                    Weight = 160,
+                    FavMeal = Meal.Breakfast,
+                };
+                (customer, _) = await
                     Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        "c3@c3", "c3");     
+                        "c3@c3", "c3", customerInfo: customer3Info);
                 _testCustomerId3 = customer.Id;
             }
             else
             {
                 _testCustomerId = existingCustomer.UserId;
-
-                var (customer, _) = await 
-                    Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        "c2@c2", "c2");     
-                _testCustomerId2 = customer.Id;
-
-                (customer, _) = await 
-                    Users.CreateUser(userManager, context, Users.AccountType.Customer,
-                        "c3@c3", "c3");     
-                _testCustomerId3 = customer.Id;
             }
 
             var existingSupplier = await context.Supplier.FirstOrDefaultAsync();
             if (existingSupplier == null)
             {
+                var supplierInfo = new Supplier()
+                {
+                    Email = "business@business.com",
+                    Website = "https://example.com",
+                    PhoneNo = "123-456-7890",
+                    SupplierName = "A Business",
+                    StoreVisitCount = 3
+                };
                 var (supplier, _) = await Users.CreateUser(userManager, context, Users.AccountType.Supplier,
-                    TestSupplierUsername, TestSupplierPassword);
+                    TestSupplierUsername, TestSupplierPassword, supplierInfo: supplierInfo);
                 _testSupplierId = supplier.Id;
             }
             else

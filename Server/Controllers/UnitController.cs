@@ -57,19 +57,22 @@ namespace RecipEase.Server.Controllers
         /// query: select * from Unit where Name = id
         /// 
         /// </remarks>
-        /// <param name="id">name of the unit to be retrieved.</param>
+        /// <param name="unitName">name of the unit to be retrieved.</param>
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ApiUnit>> GetApiUnit(string id)
+        [HttpGet("{unitName}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
+        public async Task<ActionResult<ApiUnit>> GetApiUnit(string unitName)
         {
-            var apiUnit = await _context.ApiUnit.FindAsync(id);
+            var apiUnit = await _context.Unit.FindAsync(unitName);
 
             if (apiUnit == null)
             {
                 return NotFound();
             }
 
-            return apiUnit;
+            return apiUnit.ToApiUnit();
         }
 
 
