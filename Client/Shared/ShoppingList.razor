@@ -53,7 +53,16 @@
             Method = HttpMethod.Delete,
             RequestUri = uriBuilder.Uri
         };
-        return await Http.SendAsync(request);
+        var toreturn =  await Http.SendAsync(request);
+
+        var shoppingListResponse = await Http.GetFromJsonAsync<ShoppingListResponse>("api/ShoppingList");
+            if (shoppingListResponse != null)
+            {
+                _shoppingList = shoppingListResponse.ShoppingList;
+                _ingredients = shoppingListResponse.Ingredients;
+            }
+        return toreturn;
+        
     }
 
     private async Task<HttpResponseMessage> AddIngredient(string userId, QuantifiedIngredient addedIngredient)

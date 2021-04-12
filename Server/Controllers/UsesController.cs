@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RecipEase.Server.Data;
 using RecipEase.Shared.Models.Api;
+using RecipEase.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
 
 namespace RecipEase.Server.Controllers
@@ -79,32 +80,37 @@ namespace RecipEase.Server.Controllers
         /// An update query is performed using the recipe id, to update the ingredients
         /// and their associated units.
         /// </remarks>
-        /// <param name="id">The recipe id in the Uses table.</param>
         /// <param name="apiUses">The associated object from the Uses table.</param>
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutApiUses(int id, ApiUses apiUses)
+        [HttpPut]
+        [Consumes("application/json")]
+        public async Task<IActionResult> PutApiUses(ApiUses apiUses)
         {
-            if (id != apiUses.RecipeId)
+             Uses uses = new Uses
             {
-                return BadRequest();
-            }
+                RecipeId = apiUses.RecipeId,
+                IngrName = apiUses.IngrName,
+                Quantity = apiUses.Quantity,
+                UnitName = apiUses.UnitName
 
-            _context.Entry(apiUses).State = EntityState.Modified;
+        };
+            _context.Entry(uses).State = EntityState.Modified;
 
             try
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException e)
             {
-                if (!ApiUsesExists(id))
+                System.Console.WriteLine(e.Message);
+                if (!ApiUsesExists(apiUses.RecipeId, apiUses.UnitName, apiUses.IngrName))
                 {
+                    System.Console.WriteLine(apiUses.RecipeId);
+                    System.Console.WriteLine(apiUses.UnitName);
+                    System.Console.WriteLine(apiUses.IngrName);
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
             return NoContent();
@@ -123,16 +129,16 @@ namespace RecipEase.Server.Controllers
         /// </remarks>
         /// <param name="apiUses">The associated object from the Uses table.</param>
         [HttpPost]
-        public async Task<ActionResult<ApiUses>> PostApiUses(ApiUses apiUses)
+        public async Task<ActionResult<ApiUses>> PostApiUses(Uses apiUses)
         {
-            _context.ApiUses.Add(apiUses);
+            _context.Uses.Add(apiUses);
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
-                if (ApiUsesExists(apiUses.RecipeId))
+                if (ApiUsesExists(apiUses.RecipeId, apiUses.UnitName, apiUses.IngrName))
                 {
                     return Conflict();
                 }
@@ -142,7 +148,7 @@ namespace RecipEase.Server.Controllers
                 }
             }
 
-            return CreatedAtAction("GetApiUses", new { id = apiUses.RecipeId }, apiUses);
+            return Created("", apiUses);
         }
 
         /// <summary>
@@ -155,25 +161,39 @@ namespace RecipEase.Server.Controllers
         /// 
         /// A Delete operation to delete a Uses entry is performed.
         /// </remarks>
-        ///<param name="id">The recipe_id to delete.</param>
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteApiUses(int id)
+        [HttpDelete]
+        public async Task<IActionResult> DeleteApiUses(ApiUses apiUses)
         {
-            var apiUses = await _context.ApiUses.FindAsync(id);
-            if (apiUses == null)
+            Uses uses = new Uses
             {
-                return NotFound();
-            }
+                RecipeId = apiUses.RecipeId,
+                IngrName = apiUses.IngrName,
+                Quantity = apiUses.Quantity,
+                UnitName = apiUses.UnitName
 
-            _context.ApiUses.Remove(apiUses);
-            await _context.SaveChangesAsync();
+        };
+        _context.Entry(uses).State = EntityState.Deleted;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ApiUsesExists(apiUses.RecipeId, apiUses.UnitName, apiUses.IngrName))
+                {
+                    return NotFound();
+                }
+
+                throw;
+            }
 
             return NoContent();
         }
 
-        private bool ApiUsesExists(int id)
+        private bool ApiUsesExists(int rec, string unit, string ingr)
         {
-            return _context.ApiUses.Any(e => e.RecipeId == id);
+            return _context.Uses.Any(e => (e.RecipeId == rec && e.UnitName == unit && e.IngrName == ingr));
         }
     }
 }

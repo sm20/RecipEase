@@ -2,15 +2,19 @@
 @using RecipEase.Shared.Models.Api
 @using Meal = RecipEase.Shared.Models.Meal
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@using System.Net
 @using RecipEase.Client.Shared.Util
-@using RecipEase.Shared
 @inject HttpClient Http
+@using Microsoft.AspNetCore.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using RecipEase.Shared.ApiResponses
+@attribute [Authorize]
+
 
 
 @page "/EditRecipe/{recipeId}"
 
 <h2>Edit Recipe</h2>
+
 
 @if (_error != null)
 {
@@ -20,48 +24,126 @@
 {
     <div class="container alert-success">@_success</div>
 }
-@if (_customer != null)
+@if (_customer != null && _rec != null)
 {
-    @* <EditForm
-\        OnValidSubmit="@HandleValidSubmit"
-        class="w-50">
+    <EditForm Id="RecipeForm" Model="@_rec" OnValidSubmit="@HandleValidSubmit" class="w-50">
 
-        <DataAnnotationsValidator/>
-        <ValidationSummary/>
+        <DataAnnotationsValidator />
+        <ValidationSummary />
 
         <div class="form-group">
-            
+            <label for="name">
+                <h2>Title</h2>
+            </label>
+            <InputText id="name" class="form-control" @bind-Value="_rec.Name" />
         </div>
-        <div class="form-group">
-            
-        </div>
-        <div class="form-group">
-            
-        </div>
-        <div class="form-group">
-            
-        </div>
-        <div class="form-group">
-        </div>
-        <p></p>
 
-    </EditForm> *@
+
+        <div class="form-group">
+            <label for="steps">
+                <h2> Direction </h2>
+            </label>
+            <RadzenTextArea id="steps" class="form-control" Rows="8" @bind-Value="_rec.Steps" />
+        </div>
+
+        <h2>Nutritions Stats</h2>
+
+        <div class="form-group">
+            <label for="steps">Cholesterol:</label>
+            <RadzenNumeric TValue="double?" Min="0" Format="0.00" Placeholder="Enter or clear value"
+            @bind-Value="_rec.Cholesterol" /> mg/dL
+        </div>
+
+        <div class="form-group">
+            <label for="steps">Fat:</label>
+            <RadzenNumeric TValue="double?" Min="0" Format="0.00" Placeholder="Enter or clear value"
+            @bind-Value="_rec.Fat" /> mg
+        </div>
+
+        <div class="form-group">
+            <label for="steps">Sodium:</label>
+            <RadzenNumeric TValue="double?" Min="0" Format="0.00" Placeholder="Enter or clear value"
+            @bind-Value="_rec.Sodium" /> mg
+        </div>
+
+        <div class="form-group">
+            <label for="steps">Protein:</label>
+            <RadzenNumeric TValue="double?" Min="0" Format="0.00" Placeholder="Enter or clear value"
+            @bind-Value="_rec.Protein" /> mg
+        </div>
+
+        <div class="form-group">
+            <label for="steps">Carbs:</label>
+            <RadzenNumeric TValue="double?" Min="0" Format="0.00" Placeholder="Enter or clear value"
+            @bind-Value="_rec.Carbs" /> mg
+        </div>
+
+        <div class="form-group">
+            <label for="steps">Calories:</label>
+            <RadzenNumeric TValue="double?" Min="0" Format="0.00" Placeholder="Enter or clear value"
+            @bind-Value="_rec.Calories" /> kcal
+        </div>
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Update Recipe</button>
+        </div>
+
+    </EditForm>
+
+    <h2> Ingredients Used</h2>
+
+        <IngredientListEditor
+        IngredientList="@_ingredients"
+        DeleteIngredient="@DeleteIngredient"
+        AddIngredient="@AddIngredient"
+        UpdateIngredient="@UpdateIngredient"/>
 }
+
 
 @code {
 
+    private const string ApiEndpoint = "api/Uses";
     [Parameter]
-    public string RecipeId {get;set;}  = "default value";
+    public string recipeId { get; set; } = "default value";
 
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
     private ApiCustomer _customer = null;
+    private ApiRecipe _rec = null;
     private string _error = null;
     private string _success = null;
 
+    private ApiUses temp_use = null;
+
+    public IEnumerable<ApiUses> uses { get; set; } = null;
+
+    public IEnumerable<ApiUnit> allUnit { get; set; } = null;
+
+    public IEnumerable<ApiIngredient> allIngr { get; set; } = null;
+
+    private List<QuantifiedIngredient> _ingredients = new List<QuantifiedIngredient>();
+
+    public String aId = null;
+
     protected override async Task OnInitializedAsync()
     {
+        uses = await Http.GetFromJsonAsync<IEnumerable<ApiUses>>($"api/Uses/{recipeId}");
+        foreach (var item in uses)
+        {
+            _ingredients.Add(new QuantifiedIngredient
+            {
+                Ingredient = await Http.GetFromJsonAsync<ApiIngredient>($"api/Ingr/{item.IngrName}"),
+                Quantity = item.Quantity,
+                Unit = await Http.GetFromJsonAsync<ApiUnit>($"api/Unit/{item.UnitName}"),
+            });
+        }
+
+        temp_use = new ApiUses()
+        {
+            RecipeId = Int32.Parse(recipeId),
+        };
+
         try
         {
             var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
@@ -72,7 +154,7 @@
                     Path = "api/Customer",
                     Query = $"userId={userId}"
                 };
-                
+
                 _customer = await Http.GetFromJsonAsync<ApiCustomer>(uriBuilder.ToString());
             }
         }
@@ -84,11 +166,77 @@
         {
             _error = "An error occurred loading your account.";
         }
+
+        try
+        {
+            String path = $"api/Recipe/{recipeId}";
+            _rec = await Http.GetFromJsonAsync<ApiRecipe>(path);
+        }
+        catch (HttpRequestException e)
+        {
+            _error = "An error occurred loading your recipe.";
+        }
     }
+
 
     private async Task HandleValidSubmit()
     {
-        
+        var response = await Http.PutAsJsonAsync($"api/Recipe/{_rec.Id}", _rec);
+        if (!response.IsSuccessStatusCode)
+        {
+            _error = "An error occurred updating your account";
+        }
+        else
+        {
+            _success = "Account updated!";
+        }
     }
+
+    private async Task<HttpResponseMessage> DeleteIngredient(string userId, QuantifiedIngredient removedIngredient)
+    {
+
+        temp_use = new ApiUses{
+                IngrName = removedIngredient.Ingredient.Name,
+                Quantity = removedIngredient.Quantity,
+                UnitName = removedIngredient.Unit.Name,
+                RecipeId = Int32.Parse(recipeId),
+        };
+        var uriBuilder = new UriBuilder(Http.BaseAddress)
+        {
+            Path = ApiEndpoint
+        };
+        var request = new HttpRequestMessage
+        {
+            Content = JsonContent.Create(temp_use),
+            Method = HttpMethod.Delete,
+            RequestUri = uriBuilder.Uri,
+        };
+        return await Http.SendAsync(request);
+    }
+
+    private async Task<HttpResponseMessage> AddIngredient(string userId, QuantifiedIngredient addedIngredient)
+    {
+        temp_use = new ApiUses{
+                IngrName = addedIngredient.Ingredient.Name,
+                Quantity = addedIngredient.Quantity,
+                UnitName = addedIngredient.Unit.Name,
+                RecipeId = Int32.Parse(recipeId),
+        };
+        
+        return await Http.PostAsJsonAsync(ApiEndpoint, temp_use);
+    }
+
+    private async Task<HttpResponseMessage> UpdateIngredient(string userId, QuantifiedIngredient updatedIngredient)
+    {
+        temp_use = new ApiUses{
+                IngrName = updatedIngredient.Ingredient.Name,
+                Quantity = updatedIngredient.Quantity,
+                UnitName = updatedIngredient.Unit.Name,
+                RecipeId = Int32.Parse(recipeId),
+        };
+        
+        return await Http.PutAsJsonAsync(ApiEndpoint, temp_use);
+    }
+
 
 }

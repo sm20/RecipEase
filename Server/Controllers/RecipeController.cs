@@ -7,6 +7,12 @@ using Microsoft.EntityFrameworkCore;
 using RecipEase.Server.Data;
 using RecipEase.Shared.Models.Api;
 using RecipEase.Shared.Models;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
+
+
+
 
 namespace RecipEase.Server.Controllers
 {
@@ -14,16 +20,20 @@ namespace RecipEase.Server.Controllers
     [Produces("application/json")]
     [ApiConventionType(typeof(DefaultApiConventions))]
     [ApiController]
+  
     public class RecipeController : ControllerBase
     {
         private readonly RecipEaseContext _context;
 
-        public RecipeController(RecipEaseContext context)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+
+        public RecipeController(RecipEaseContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        /// <summary>
         /// Get a recipe.
         /// </summary>
         /// <remarks>
@@ -102,9 +112,9 @@ namespace RecipEase.Server.Controllers
             if (categoryName != null)
             {
                 query = from recipe in query
-                    join cat in _context.RecipeInCategory on recipe.Id equals cat.RecipeId
-                    where cat.CategoryName == categoryName
-                    select recipe;
+                        join cat in _context.RecipeInCategory on recipe.Id equals cat.RecipeId
+                        where cat.CategoryName == categoryName
+                        select recipe;
             }
 
             return await query.Select(recipe => recipe.ToApiRecipe()).ToListAsync();
@@ -134,8 +144,16 @@ namespace RecipEase.Server.Controllers
         /// <param name="apiRecipe"></param>
         [HttpPut("{id}")]
         [Consumes("application/json")]
+        [Authorize]
         public async Task<IActionResult> PutRecipe(int id, Recipe apiRecipe)
         {
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId != apiRecipe.AuthorId)
+            {
+                return Unauthorized();
+            }
+
             if (id != apiRecipe.Id)
             {
                 return BadRequest();
@@ -187,14 +205,36 @@ namespace RecipEase.Server.Controllers
         ///
         /// </remarks>
         [HttpPost]
+        [Authorize]
         [Consumes("application/json")]
         public async Task<ActionResult<Recipe>> PostRecipe(Recipe apiRecipe)
         {
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId != apiRecipe.AuthorId)
+            {
+                return Unauthorized();
+            }
+
             _context.Recipe.Add(apiRecipe);
-            await _context.SaveChangesAsync();
-            int id = apiRecipe.Id;
-            Console.WriteLine(id);
-            return CreatedAtAction("GetRecipes", new {id = apiRecipe.Id}, apiRecipe);
+
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                if (RecipeExists(apiRecipe.Id))
+                {
+                    return Conflict();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return CreatedAtAction("GetRecipes", new { id = apiRecipe.Id }, apiRecipe);
         }
 
         /// <summary>
@@ -219,18 +259,28 @@ namespace RecipEase.Server.Controllers
         /// </remarks>
         /// <param name="id">The id of the recipe to update.</param>
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteRecipe(int id)
         {
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
             var apiRecipe = await _context.Recipe.FindAsync(id);
             if (apiRecipe == null)
             {
                 return NotFound();
             }
 
+            if (userId != apiRecipe.AuthorId)
+            {
+                return Unauthorized();
+            }
+
+
             _context.Recipe.Remove(apiRecipe);
             await _context.SaveChangesAsync();
 
             return Ok();
+
         }
 
         private bool RecipeExists(int id)
