@@ -12,7 +12,7 @@ namespace RecipEase.Shared.Models
         [ForeignKey("ConvertsFromUnit")]
         public string ConvertsFromUnitName { get; set; }
 
-        public int Ratio { get; set; }
+        public double Ratio { get; set; }
         
 
         public Unit ConvertsToUnit { get; set; }

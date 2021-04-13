@@ -13,11 +13,11 @@ namespace RecipEase.Server.Controllers
     [Route("api/[controller]")]
     [Produces("application/json")]
     [ApiController]
-    public class UnitConverseController : ControllerBase
+    public class UnitConversionController : ControllerBase
     {
         private readonly RecipEaseContext _context;
 
-        public UnitConverseController(RecipEaseContext context)
+        public UnitConversionController(RecipEaseContext context)
         {
             _context = context;
         }
@@ -44,34 +44,53 @@ namespace RecipEase.Server.Controllers
         }
 
         /// <summary>
-        /// Get  unit conversion from one unit to another
+        /// Get unit conversion from one unit to another
         /// </summary>
         /// <remarks>
         ///
-        /// functionalities : retrieve all unitconversion in UnitConversion
+        /// functionalities : retrieve a unitconversion matching the given keys.
         /// 
-        /// database: UnitConversion, Unit
-        /// 
-        /// constraints: two unit must be the same unit type
+        /// database: UnitConversion
         /// 
         /// query: select * from UnitConversion where ConvertsToUnitName = id1 and 
         /// ConvertsFromUnitName = id2
         /// 
         /// </remarks>
-
+        /// <param name="convertsToUnitName">A unit name to find conversions to.</param>
+        /// <param name="convertsFromUnitName">A unit name to find conversions from.</param>
         [HttpGet]
-        public async Task<ActionResult<ApiUnitConversion>> GetApiUnitConversion(string id1, string id2)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
+        public async Task<ActionResult<ApiUnitConversion>> GetApiUnitConversion(string convertsToUnitName,
+            string convertsFromUnitName)
         {
-            var apiUnitConversion = _context.ApiUnitConversion.Find(id1, id2);
+            var unitConversion = await _context.UnitConversion.FindAsync(convertsToUnitName, convertsFromUnitName);
+            double ratio;
 
-            if (apiUnitConversion == null)
+            if (unitConversion == null)
             {
-                return NotFound();
+                // Try the opposite direction
+                unitConversion = await _context.UnitConversion.FindAsync(convertsFromUnitName, convertsToUnitName);
+                if (unitConversion == null)
+                {
+                    return NotFound();
+                }
+
+                ratio = 1 / unitConversion.Ratio;
+            }
+            else
+            {
+                ratio = unitConversion.Ratio;
             }
 
-            return apiUnitConversion;
+            return new ApiUnitConversion
+            {
+                Ratio = ratio,
+                ConvertsFromUnitName = unitConversion.ConvertsFromUnitName,
+                ConvertsToUnitName = unitConversion.ConvertsToUnitName
+            };
         }
-
 
 
         private bool ApiUnitConversionExists(string id1)

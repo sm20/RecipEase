@@ -15,6 +15,6 @@ namespace RecipEase.Shared.Models.Api
         [Required]
         public string UserId { get; set; }
 
-        public int Quantity { get; set; }
+        public double Quantity { get; set; }
     }
 }

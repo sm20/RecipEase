@@ -40,13 +40,10 @@
     <ul class="list-group list-group-flush mb-4">
         <IngredientListView
             Ingredients="@Ingredients"
-            QuantityEditable="@false"
-            ShowDelete="@false"
-            ShowSave="@false"
+            ReadOnly="@true"
             ShowAdd="@true"
-            ShowNewIngredient="@false"
-            UnitEditable="@false"
-            OnAdd="@OnAddIngredientToShoppingList">
+            OnAdd="@OnAddIngredientToShoppingList"
+            UnitEditable="@true">
         </IngredientListView>
     </ul>
 

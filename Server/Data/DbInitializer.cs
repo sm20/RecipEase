@@ -475,8 +475,18 @@ namespace RecipEase.Server.Data
                 };
 
                 await context.Unit.AddRangeAsync(units);
-                await context.SaveChangesAsync();
             }
+            
+            if (!context.UnitConversion.Any())
+            {
+                var conversions = new[]
+                {
+                    new UnitConversion {ConvertsToUnitName = Grams, ConvertsFromUnitName = Cups, Ratio = 2.1},
+                };
+                await context.UnitConversion.AddRangeAsync(conversions);
+            }
+            
+            await context.SaveChangesAsync();
         }
 
         private static async Task InitializeIngredients(RecipEaseContext context)

@@ -7,9 +7,9 @@ namespace RecipEase.Shared.ApiResponses
     {
         public ApiIngredient Ingredient { get; init; }
 
-        public ApiUnit Unit { get; init; }
+        public ApiUnit Unit { get; set; }
 
-        public int Quantity { get; set; }
+        public double Quantity { get; set; }
 
         public QuantifiedIngredient GetCopy()
         {

@@ -16,7 +16,7 @@ namespace RecipEase.Shared.Models
         [ForeignKey("Ingredient")]
         public string IngrName { get; set; } 
 
-        public int Quantity { get; set; }
+        public double Quantity { get; set; }
         //should be considered
         //  public int order{ get; set; } 
 
