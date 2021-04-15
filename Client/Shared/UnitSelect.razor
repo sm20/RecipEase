@@ -49,7 +49,8 @@
         {
             var newUnit = AllUnits[value];
             Ingredient.Unit = newUnit;
-            OnUnitChange((Ingredient.Ingredient.Name, Ingredient.Unit.Name), AllUnits[_selectedUnit], newUnit);
+            var oldUnit = AllUnits[_selectedUnit];
+            OnUnitChange((Ingredient.Ingredient.Name, oldUnit.Name), oldUnit, newUnit);
             _selectedUnit = value;
         }
     }

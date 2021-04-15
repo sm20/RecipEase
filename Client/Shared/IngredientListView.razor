@@ -40,7 +40,7 @@
                     class="form-control w-25"
                     placeholder="Amount"
                     @bind=@quantifiedIngredient.Quantity/>
-                <UnitSelect OnUnitChange="@ConvertQuantity" Ingredient="@quantifiedIngredient" UnitEditable="@UnitEditable" />
+                <UnitSelect OnUnitChange="@ConvertQuantity" Ingredient="@quantifiedIngredient" UnitEditable="@UnitEditable"/>
             </div>
             <span class="badge badge-primary badge-pill">@(quantifiedIngredient.Ingredient.Rarity?.ToString())</span>
             <IngredientSuppliersButton IngredientName="@quantifiedIngredient.Ingredient.Name"></IngredientSuppliersButton>
@@ -126,17 +126,17 @@
 
     private async Task ConvertQuantity((string, string) ingredientKey, ApiUnit oldUnit, ApiUnit newUnit)
     {
-        // We don't do any conversions if the user is allowed to edit the quantity themselves
+    // We don't do any conversions if the user is allowed to edit the quantity themselves
         if (QuantityEditable)
         {
             return;
         }
-        
+
         if (oldUnit.Name == newUnit.Name)
         {
             return;
         }
-        
+
         var client = Auth.GetNoAuthHttpClient(ClientFactory);
         var uriBuilder = new UriBuilder(client.BaseAddress)
         {
@@ -147,6 +147,14 @@
         if (conversion != null)
         {
             var ingredient = Ingredients[ingredientKey];
+            // Remove the old keys with the old units
+            foreach (var key in Ingredients.Keys.Where(key => key.Item1 == ingredientKey.Item1))
+            {
+                Ingredients.Remove(key);
+            }
+            // Replace with a new key for the new unit
+            Ingredients.Add((ingredient.Ingredient.Name, newUnit.Name), ingredient);
+            
             if (oldUnit.UnitType == newUnit.UnitType)
             {
                 ingredient.Quantity *= conversion.Ratio;
