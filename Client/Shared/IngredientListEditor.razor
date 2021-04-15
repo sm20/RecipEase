@@ -99,8 +99,6 @@
             foreach (var (key, remainingIngredient) in IterIngredientsByKeys(OriginalIngredients, remainingKeys))
             {
                 var updatedIngredient = Ingredients[key];
-                Console.WriteLine(updatedIngredient.Ingredient.Name);
-                Console.WriteLine(updatedIngredient.Unit.Name);
                 if (remainingIngredient.Equals(updatedIngredient)) continue;
 
                 var response = await UpdateIngredient(userId, updatedIngredient);

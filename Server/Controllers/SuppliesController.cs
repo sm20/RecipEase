@@ -127,6 +127,11 @@ namespace RecipEase.Server.Controllers
                 return Unauthorized();
             }
 
+            var query = from s in _context.Supplies where s.IngrName == quantifiedIngredient.Ingredient.Name select s;
+            foreach (var s in query)
+            {
+                _context.Entry(s).State = EntityState.Deleted;
+            }
             var updatedSupplies = new Supplies()
             {
                 Quantity = quantifiedIngredient.Quantity,
@@ -135,7 +140,7 @@ namespace RecipEase.Server.Controllers
                 UserId = userId
             };
 
-            _context.Entry(updatedSupplies).State = EntityState.Modified;
+            await _context.Supplies.AddAsync(updatedSupplies);
 
             try
             {

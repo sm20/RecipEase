@@ -48,7 +48,6 @@
         set
         {
             var newUnit = AllUnits[value];
-            Console.WriteLine(newUnit.Name);
             Ingredient.Unit = newUnit;
             OnUnitChange((Ingredient.Ingredient.Name, Ingredient.Unit.Name), AllUnits[_selectedUnit], newUnit);
             _selectedUnit = value;
