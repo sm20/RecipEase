@@ -60,7 +60,7 @@
 {
     /// Ingredients to be shown
     [Parameter]
-    public Dictionary<string, QuantifiedIngredient> Ingredients { get; set; }
+    public Dictionary<(string, string), QuantifiedIngredient> Ingredients { get; set; }
 
     /// Handler to be called when the user saves their changes
     [Parameter]
@@ -93,12 +93,12 @@
     /// Handler to be called when the delete button is pressed on an item. Gets passed the ingredient key. If this is
     /// not provided, by default the ingredient will be removed on click.
     [Parameter]
-    public Action<string> OnDelete { get; set; }
+    public Action<(string, string)> OnDelete { get; set; }
 
     /// Handler to be called when the add button is pressed on an item. Gets passed the ingredient key. If this is
     /// not provided, by default nothing will happen.
     [Parameter]
-    public Action<string> OnAdd { get; set; }
+    public Action<(string, string)> OnAdd { get; set; }
 
     private bool _readOnly;
 
@@ -124,7 +124,7 @@
 
     private Dictionary<UnitType, List<ApiUnit>> Units { get; set; }
 
-    private async Task ConvertQuantity(string ingredientName, ApiUnit oldUnit, ApiUnit newUnit)
+    private async Task ConvertQuantity((string, string) ingredientKey, ApiUnit oldUnit, ApiUnit newUnit)
     {
         if (oldUnit.Name == newUnit.Name)
         {
@@ -140,8 +140,7 @@
         var conversion = await client.GetFromJsonAsync<ApiUnitConversion>(uriBuilder.ToString());
         if (conversion != null)
         {
-            var ingredient = Ingredients[ingredientName];
-            Console.WriteLine(ingredient.Quantity);
+            var ingredient = Ingredients[ingredientKey];
             if (oldUnit.UnitType == newUnit.UnitType)
             {
                 ingredient.Quantity *= conversion.Ratio;
@@ -160,18 +159,17 @@
                         throw new ArgumentOutOfRangeException();
                 }
             }
-            Console.WriteLine(ingredient.Quantity);
             StateHasChanged();
         }
     }
 
-    private void DefaultDeleteHandler(string key)
+    private void DefaultDeleteHandler((string, string) key)
     {
         Ingredients.Remove(key);
         StateHasChanged();
     }
 
-    private EventCallback<MouseEventArgs> GetAddHandler(string ingredientKey)
+    private EventCallback<MouseEventArgs> GetAddHandler((string, string) ingredientKey)
     {
         void AddHandler(object _)
         {
@@ -184,7 +182,7 @@
         return GetEventCallback(AddHandler);
     }
 
-    private EventCallback<MouseEventArgs> GetDeleteHandler(string ingredientKey)
+    private EventCallback<MouseEventArgs> GetDeleteHandler((string, string) ingredientKey)
     {
         void DeleteHandler(object _)
         {
@@ -208,7 +206,7 @@
 
     private void OnNewIngredient(QuantifiedIngredient newIngredient)
     {
-        var key = newIngredient.Ingredient.Name;
+        var key = (newIngredient.Ingredient.Name, newIngredient.Unit.Name);
         if (!Ingredients.ContainsKey(key))
         {
             Ingredients.Add(key, newIngredient);

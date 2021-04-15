@@ -89,7 +89,7 @@
 
     private ApiRecipe RecipeViewed { get; set; }
 
-    private Dictionary<string, QuantifiedIngredient> Ingredients { get; } = new();
+    private Dictionary<(string, string), QuantifiedIngredient> Ingredients { get; } = new();
 
     private bool? _ingredientAdded;
 
@@ -125,7 +125,7 @@
                 var unit = await client.GetFromJsonAsync<ApiUnit>($"api/Unit/{a.UnitName}");
                 if (i != null)
                 {
-                    Ingredients.Add(i.Name, new QuantifiedIngredient()
+                    Ingredients.Add((i.Name, unit?.Name), new QuantifiedIngredient()
                     {
                         Ingredient = i,
                         Quantity = a.Quantity,
@@ -135,7 +135,7 @@
             }
     }
 
-    private async void OnAddIngredientToShoppingList(string ingredientName)
+    private async void OnAddIngredientToShoppingList((string, string) ingredientKey)
     {
         var userId = await Auth.GetAuthenticatedUser(AuthenticationStateTask);
         if (userId == null)
@@ -143,7 +143,7 @@
             IngredientAdded = false;
             return;
         }
-        var added = Ingredients[ingredientName]?.ToApiIngrInShoppingList(userId);
+        var added = Ingredients[ingredientKey]?.ToApiIngrInShoppingList(userId);
         if (added == null)
         {
             IngredientAdded = false;

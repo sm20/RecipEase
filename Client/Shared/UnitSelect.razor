@@ -36,7 +36,7 @@
     public QuantifiedIngredient Ingredient { get; set; }
 
     [Parameter]
-    public Func<string, ApiUnit, ApiUnit, Task> OnUnitChange { get; set; }
+    public Func<(string, string), ApiUnit, ApiUnit, Task> OnUnitChange { get; set; }
 
     private List<ApiUnit> AllUnits { get; set; }
 
@@ -49,7 +49,7 @@
         {
             var newUnit = AllUnits[value];
             Ingredient.Unit = newUnit;
-            OnUnitChange(Ingredient.Ingredient.Name, AllUnits[_selectedUnit], newUnit);
+            OnUnitChange((Ingredient.Ingredient.Name, Ingredient.Unit.Name), AllUnits[_selectedUnit], newUnit);
             _selectedUnit = value;
         }
     }

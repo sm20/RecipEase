@@ -42,7 +42,7 @@
     {
         set
         {
-            Ingredients = value?.ToDictionary(ing => ing.Ingredient.Name, ing => ing);
+            Ingredients = value?.ToDictionary(ing => (ing.Ingredient.Name, ing.Unit.Name), ing => ing);
             if (Ingredients != null)
             {
                 SetOriginalIngredients(Ingredients);
@@ -50,12 +50,12 @@
         }
     }
 
-    private Dictionary<string, QuantifiedIngredient> Ingredients { get; set; }
-    private Dictionary<string, QuantifiedIngredient> OriginalIngredients { get; set; }
+    private Dictionary<(string, string), QuantifiedIngredient> Ingredients { get; set; }
+    private Dictionary<(string, string), QuantifiedIngredient> OriginalIngredients { get; set; }
 
     private List<string> Errors { get; } = new();
 
-    private void SetOriginalIngredients(Dictionary<string, QuantifiedIngredient> ingredients)
+    private void SetOriginalIngredients(Dictionary<(string, string), QuantifiedIngredient> ingredients)
     {
         OriginalIngredients = ingredients.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.GetCopy());
     }
@@ -111,8 +111,7 @@
         SetOriginalIngredients(Ingredients);
     }
 
-    private IEnumerable<(string key, QuantifiedIngredient)> IterIngredientsByKeys(Dictionary<string, QuantifiedIngredient>
-        ingredients, HashSet<string> keys)
+    private IEnumerable<((string, string) key, QuantifiedIngredient)> IterIngredientsByKeys(Dictionary<(string, string), QuantifiedIngredient> ingredients, HashSet<(string, string)> keys)
     {
         return keys.Select(key => (key, ingredients[key]));
     }
