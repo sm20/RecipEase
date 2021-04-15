@@ -126,6 +126,12 @@
 
     private async Task ConvertQuantity((string, string) ingredientKey, ApiUnit oldUnit, ApiUnit newUnit)
     {
+        // We don't do any conversions if the user is allowed to edit the quantity themselves
+        if (QuantityEditable)
+        {
+            return;
+        }
+        
         if (oldUnit.Name == newUnit.Name)
         {
             return;

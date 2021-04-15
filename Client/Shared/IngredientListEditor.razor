@@ -13,8 +13,9 @@
     <ul class="list-group list-group-flush mb-4">
         <IngredientListView
             Ingredients="@Ingredients"
-            SaveHandler="@SaveHandler">
-        </IngredientListView>
+            SaveHandler="@SaveHandler"
+            UnitEditable="@true"
+            />
     </ul>
 }
 
@@ -98,6 +99,8 @@
             foreach (var (key, remainingIngredient) in IterIngredientsByKeys(OriginalIngredients, remainingKeys))
             {
                 var updatedIngredient = Ingredients[key];
+                Console.WriteLine(updatedIngredient.Ingredient.Name);
+                Console.WriteLine(updatedIngredient.Unit.Name);
                 if (remainingIngredient.Equals(updatedIngredient)) continue;
 
                 var response = await UpdateIngredient(userId, updatedIngredient);
