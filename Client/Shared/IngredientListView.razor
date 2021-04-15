@@ -213,7 +213,7 @@
     private void OnNewIngredient(QuantifiedIngredient newIngredient)
     {
         var key = (newIngredient.Ingredient.Name, newIngredient.Unit.Name);
-        if (!Ingredients.ContainsKey(key))
+        if (Ingredients.Keys.All(k => k.Item1 != key.Item1))
         {
             Ingredients.Add(key, newIngredient);
             StateHasChanged();
