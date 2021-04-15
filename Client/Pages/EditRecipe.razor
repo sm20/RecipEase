@@ -162,7 +162,7 @@
         {
             e.Redirect();
         }
-        catch (HttpRequestException e)
+        catch (HttpRequestException)
         {
             _error = "An error occurred loading your account.";
         }
@@ -172,7 +172,7 @@
             String path = $"api/Recipe/{recipeId}";
             _rec = await Http.GetFromJsonAsync<ApiRecipe>(path);
         }
-        catch (HttpRequestException e)
+        catch (HttpRequestException)
         {
             _error = "An error occurred loading your recipe.";
         }

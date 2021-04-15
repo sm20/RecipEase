@@ -91,57 +91,5 @@ namespace RecipEase.Server.Controllers
                 Ingredients = new List<QuantifiedIngredient>()
             };
         }
-
-        /// <summary>
-        /// Edit an user's shopping list
-        /// </summary>
-        /// <remarks>
-        ///
-        /// functionalities : Edit an user's shopping list with accordinging id.
-        /// 
-        /// database: ShoppingList, User
-        /// 
-        /// constraints: The authenticated user making this request must be the owner of the
-        /// shopping list.
-        /// 
-        /// query: update ShoppingList Set (some values) where UserId = userId
-        /// 
-        /// </remarks>
-        /// <param name="userId">id of the user who have the shopping list.</param>
-        /// <param name="apiShoppingList"></param>
-        [HttpPut("{userId}")]
-        [Consumes("application/json")]
-        public async Task<IActionResult> PutApiShoppingList(string userId, ApiShoppingList apiShoppingList)
-        {
-            if (userId != apiShoppingList.UserId)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(apiShoppingList).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ApiShoppingListExists(userId))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        private bool ApiShoppingListExists(string id)
-        {
-            return _context.ApiShoppingList.Any(e => e.UserId == id);
-        }
     }
 }

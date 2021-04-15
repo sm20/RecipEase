@@ -34,6 +34,7 @@ namespace RecipEase.Server.Controllers
             _httpContextAccessor = httpContextAccessor;
         }
 
+        /// <summary>
         /// Get a recipe.
         /// </summary>
         /// <remarks>
