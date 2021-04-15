@@ -74,11 +74,5 @@ namespace RecipEase.Server.Controllers
 
             return apiUnit.ToApiUnit();
         }
-
-
-        private bool ApiUnitExists(string id)
-        {
-            return _context.ApiUnit.Any(e => e.Name == id);
-        }
     }
 }

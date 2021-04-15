@@ -23,27 +23,6 @@ namespace RecipEase.Server.Controllers
         }
 
         /// <summary>
-        /// Get all unit conversion
-        /// </summary>
-        /// <remarks>
-        ///
-        /// functionalities : retrieve all unitconversion in UnitConversion
-        /// 
-        /// database: UnitConversion
-        /// 
-        /// constraints: no constraints
-        /// 
-        /// query: select * from UnitConversion
-        /// 
-        /// </remarks>
-        [HttpGet]
-        [Route("all")]
-        public async Task<ActionResult<IEnumerable<ApiUnitConversion>>> GetApiUnitConversion()
-        {
-            return await _context.ApiUnitConversion.ToListAsync();
-        }
-
-        /// <summary>
         /// Get unit conversion from one unit to another
         /// </summary>
         /// <remarks>
@@ -90,12 +69,6 @@ namespace RecipEase.Server.Controllers
                 ConvertsFromUnitName = unitConversion.ConvertsFromUnitName,
                 ConvertsToUnitName = unitConversion.ConvertsToUnitName
             };
-        }
-
-
-        private bool ApiUnitConversionExists(string id1)
-        {
-            return _context.ApiUnitConversion.Any(e => e.ConvertsFromUnitName == id1 || e.ConvertsToUnitName == id1);
         }
     }
 }

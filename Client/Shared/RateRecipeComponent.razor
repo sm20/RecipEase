@@ -22,8 +22,6 @@
     public string RecipeId { get; set; }
 
     public string userId = null;
-    private string _error = null;
-    private string _success = null;
     int numStars = 0;
     int currStars = 0;
     public bool isDisabled = true;
@@ -67,9 +65,8 @@
         {
             e.Redirect();
         }
-        catch (HttpRequestException e)
+        catch (HttpRequestException)
         {
-            _error = "An error occurred loading your account.";
         }
     }
 
