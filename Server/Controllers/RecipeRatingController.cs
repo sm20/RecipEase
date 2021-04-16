@@ -137,6 +137,9 @@ namespace RecipEase.Server.Controllers
         ///<param name="apiObj">The rating to update for the specified recipe and user.</param>
         [HttpPut]
         [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
         public async Task<IActionResult> PutRecipeRating(string userId, int RecipeId, ApiRecipeRating apiObj)
         {
             //convert input to database object

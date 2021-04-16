@@ -17,7 +17,7 @@ namespace RecipEase.Server.Controllers
     [ApiController]
     [Authorize]
     [Produces("application/json")]
-    [ApiConventionType(typeof(DefaultApiConventions))]   
+    [ApiConventionType(typeof(DefaultApiConventions))]
     public class SupplierController : ControllerBase
     {
         private readonly RecipEaseContext _context;
@@ -121,68 +121,6 @@ namespace RecipEase.Server.Controllers
                     throw;
                 }
             }
-
-            return NoContent();
-        }
-
-        /// <summary>
-        /// Add a new Supplier user
-        /// </summary>
-        /// <remarks>
-        ///
-        /// Add a new Supplier to the Supplier relation,
-        /// if the username does not exist in the Supplier relation of the database.
-        /// 
-        /// An Insert  operation to insert a new Suppplier user is performed.
-        /// </remarks>
-        ///<param name="apiSupplier">The Supplier object to be updated.</param>
-        [HttpPost]
-        [Consumes("application/json")]
-        public async Task<ActionResult<ApiSupplier>> PostApiSupplier(ApiSupplier apiSupplier)
-        {
-            _context.ApiSupplier.Add(apiSupplier);
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                if (SupplierExists(apiSupplier.UserId))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return CreatedAtAction("GetSupplier", new { id = apiSupplier.UserId }, apiSupplier);
-        }
-
-        /// <summary>
-        /// Delete a Supplier user
-        /// </summary>
-        /// <remarks>
-        ///
-        /// Delete a Supplier from the database,
-        /// if the user exists in the Supplier relation of the database.
-        /// The authenticated user must be the user to be deleted.
-        /// 
-        /// A Delete operation to delete a Supplier is performed.
-        /// </remarks>
-        ///<param name="id">The username of the Supplier to delete.</param>
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteApiSupplier(string id)
-        {
-            var apiSupplier = await _context.ApiSupplier.FindAsync(id);
-            if (apiSupplier == null)
-            {
-                return NotFound();
-            }
-
-            _context.ApiSupplier.Remove(apiSupplier);
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }

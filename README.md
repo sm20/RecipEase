@@ -2,18 +2,6 @@
 
 This is the RecipEase project for CPSC 471 Group 14.
 
-- [RecipEase](#recipease)
-  - [Prerequisites](#prerequisites)
-  - [Development](#development)
-    - [Updating the Database Schema](#updating-the-database-schema)
-    - [API Development](#api-development)
-      - [Controller Generation](#controller-generation)
-      - [API Reference Generation](#api-reference-generation)
-  - [Initial Project Creation](#initial-project-creation)
-  - [VSCode Tips](#vscode-tips)
-  - [Resources](#resources)
-
-
 ## Prerequisites
 
 -   [Download the .NET 5.0 SDK](https://dotnet.microsoft.com/download)

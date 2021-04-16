@@ -26,23 +26,6 @@ namespace RecipEase.Server.Controllers
         }
 
         /// <summary>
-        /// Returns list of all ingredients used by all recipes
-        /// </summary>
-        /// <remarks>
-        /// Retrieves all ingredients that all recipes use,
-        /// and their associated units, from the `Uses` table.
-        ///
-        /// A 'select*' query with a 'where' clause to find the list of ingredients
-        /// used by all recipes,
-        ///and their associated attributes, is performed.
-        /// </remarks>
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ApiUses>>> GetApiUses()
-        {
-            return await _context.ApiUses.ToListAsync();
-        }
-
-        /// <summary>
         /// Returns list of all ingredients used by a given recipe
         /// </summary>
         /// <remarks>
@@ -83,6 +66,9 @@ namespace RecipEase.Server.Controllers
         /// <param name="apiUses">The associated object from the Uses table.</param>
         [HttpPut]
         [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
         public async Task<IActionResult> PutApiUses(ApiUses apiUses)
         {
             var query = from u in _context.Uses where u.IngrName == apiUses.IngrName select u;
@@ -167,6 +153,9 @@ namespace RecipEase.Server.Controllers
         /// A Delete operation to delete a Uses entry is performed.
         /// </remarks>
         [HttpDelete]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
         public async Task<IActionResult> DeleteApiUses(ApiUses apiUses)
         {
             Uses uses = new Uses

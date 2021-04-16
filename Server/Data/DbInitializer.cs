@@ -521,7 +521,7 @@ namespace RecipEase.Server.Data
 
         private static async Task InitializeUsers(RecipEaseContext context, UserManager<User> userManager)
         {
-            var existingCustomer = await context.Customer.FirstOrDefaultAsync();
+            var existingCustomer = await context.Customer.OrderBy(customer => customer.UserId).FirstOrDefaultAsync();
             if (existingCustomer == null)
             {
                 var customer1Info = new Customer()
@@ -565,7 +565,7 @@ namespace RecipEase.Server.Data
                 _testCustomerId = existingCustomer.UserId;
             }
 
-            var existingSupplier = await context.Supplier.FirstOrDefaultAsync();
+            var existingSupplier = await context.Supplier.OrderBy(customer => customer.UserId).FirstOrDefaultAsync();
             if (existingSupplier == null)
             {
                 var supplierInfo = new Supplier()
