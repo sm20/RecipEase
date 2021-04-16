@@ -71,6 +71,12 @@ namespace RecipEase.Server.Controllers
         [ProducesDefaultResponseType]
         public async Task<IActionResult> PutApiUses(ApiUses apiUses)
         {
+            var query = from u in _context.Uses where u.IngrName == apiUses.IngrName select u;
+            foreach (var u in query)
+            {
+                _context.Entry(u).State = EntityState.Deleted;
+            }
+
             Uses uses = new Uses
             {
                 RecipeId = apiUses.RecipeId,
@@ -78,7 +84,7 @@ namespace RecipEase.Server.Controllers
                 Quantity = apiUses.Quantity,
                 UnitName = apiUses.UnitName
             };
-            _context.Entry(uses).State = EntityState.Modified;
+            await _context.Uses.AddAsync(uses);
 
             try
             {
