@@ -16,7 +16,6 @@ namespace RecipEase.Server.Controllers
     [ApiController]
     [Produces("application/json")]
     [ApiConventionType(typeof(DefaultApiConventions))]
-
     public class UsesController : ControllerBase
     {
         private readonly RecipEaseContext _context;
@@ -65,6 +64,7 @@ namespace RecipEase.Server.Controllers
             {
                 return NotFound();
             }
+
             return uses;
         }
 
@@ -85,15 +85,20 @@ namespace RecipEase.Server.Controllers
         [Consumes("application/json")]
         public async Task<IActionResult> PutApiUses(ApiUses apiUses)
         {
-             Uses uses = new Uses
+            var query = from u in _context.Uses where u.IngrName == apiUses.IngrName select u;
+            foreach (var u in query)
+            {
+                _context.Entry(u).State = EntityState.Deleted;
+            }
+
+            Uses uses = new Uses
             {
                 RecipeId = apiUses.RecipeId,
                 IngrName = apiUses.IngrName,
                 Quantity = apiUses.Quantity,
                 UnitName = apiUses.UnitName
-
-        };
-            _context.Entry(uses).State = EntityState.Modified;
+            };
+            await _context.Uses.AddAsync(uses);
 
             try
             {
@@ -170,9 +175,8 @@ namespace RecipEase.Server.Controllers
                 IngrName = apiUses.IngrName,
                 Quantity = apiUses.Quantity,
                 UnitName = apiUses.UnitName
-
-        };
-        _context.Entry(uses).State = EntityState.Deleted;
+            };
+            _context.Entry(uses).State = EntityState.Deleted;
 
             try
             {
