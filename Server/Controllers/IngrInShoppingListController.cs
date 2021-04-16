@@ -63,9 +63,10 @@ namespace RecipEase.Server.Controllers
             {
                 _context.Entry(ingrInShoppingList).State = EntityState.Deleted;
             }
+
             var updatedIngredient = apiIngredient.ToIngrInShoppingList();
             await _context.IngrInShoppingList.AddAsync(updatedIngredient);
-        
+
             try
             {
                 await _context.SaveChangesAsync();
@@ -79,7 +80,7 @@ namespace RecipEase.Server.Controllers
 
                 throw;
             }
-        
+
             return NoContent();
         }
 
@@ -102,6 +103,25 @@ namespace RecipEase.Server.Controllers
         public async Task<ActionResult<ApiIngrInShoppingList>> PostIngrInShoppingList(
             ApiIngrInShoppingList apiIngredient)
         {
+            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (apiIngredient.UserId != currentUserId)
+            {
+                return Unauthorized();
+            }
+
+            var shoppingList = await _context.ShoppingList.FindAsync(currentUserId);
+            if (shoppingList == null)
+            {
+                var defaultShoppingList = new ShoppingList
+                {
+                    Name = "My Shopping List",
+                    LastUpdate = DateTime.Now,
+                    UserId = currentUserId,
+                    NumIngredients = 0
+                };
+                await _context.AddAsync(defaultShoppingList);
+            }
+
             var ingredient = apiIngredient.ToIngrInShoppingList();
             _context.IngrInShoppingList.Add(ingredient);
             try
@@ -117,7 +137,7 @@ namespace RecipEase.Server.Controllers
 
                 throw;
             }
-        
+
             return Created("", apiIngredient);
         }
 
