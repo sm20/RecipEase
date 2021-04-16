@@ -97,8 +97,8 @@
             ApiRecipeRating obj = new ApiRecipeRating()
             {
                 Rating = currStars,
-                UserId = "johnson",
-                RecipeId = 0
+                UserId = userId,
+                RecipeId = Int32.Parse(RecipeId)
             };
             //must take in object as arg2 & obj attributes cant have any null values
             var response = await Http.PutAsJsonAsync(uriBuilder.ToString(), obj);
