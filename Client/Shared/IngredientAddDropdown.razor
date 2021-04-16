@@ -14,6 +14,7 @@
         ShowNewIngredient="@false"
         ShowSave="@false"
         OnAdd="@AddHandler"
+        UnitEditable="@true"
     ></IngredientListView>
 </ul>
 
@@ -24,17 +25,17 @@
     [Parameter]
     public string DropdownLabel { get; set; }
 
-    public Dictionary<string, QuantifiedIngredient> Ingredients { get; set; }
+    private Dictionary<(string, string), QuantifiedIngredient> Ingredients { get; set; }
 
-    protected async override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         var ingredients = await Http.GetFromJsonAsync<List<ApiIngredient>>("api/Ingr");
         Ingredients = ingredients?.ToDictionary(
-            ing => ing.Name,
+            ing => (ing.Name, ""),
             ing => ing.ToQuantifiedIngredient());
     }
 
-    private void AddHandler(string ingredientKey)
+    private void AddHandler((string, string) ingredientKey)
     {
         OnAdd(Ingredients[ingredientKey]);
     }

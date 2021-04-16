@@ -3,11 +3,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RecipEase.Shared.Models.Api
 {
-    public enum UnitType
-    {
-        Volume, Mass
-    }
-
     public class ApiUnit
     {
         [Required]

@@ -12,7 +12,7 @@ namespace RecipEase.Shared.Models.Api
         public string UnitName { get; set; }
         [Required]
         public string IngrName { get; set; }
-        public int Quantity { get; set; }
+        public double Quantity { get; set; }
 
         public IngrInShoppingList ToIngrInShoppingList()
         {

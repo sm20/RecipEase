@@ -1,0 +1,69 @@
+﻿@using RecipEase.Shared.ApiResponses
+@using RecipEase.Shared.Models
+@using RecipEase.Shared.Models.Api
+@using RecipEase.Client.Shared.Util
+@inject IHttpClientFactory ClientFactory
+
+<select class="form-control w-50" disabled="@(!UnitEditable)" @bind="@SelectedUnit">
+    @if (AllUnits != null)
+    {
+        @foreach (var unitType in Enum.GetValues(typeof(UnitType)).Cast<UnitType>())
+        {
+            <optgroup label="@unitType.ToString()">
+                @for (var i = 0; i < AllUnits.Count; i++)
+                {
+                    @if (AllUnits[i].UnitType == unitType)
+                    {
+                        <option selected="@(SelectedUnit == i)" value="@i">@AllUnits[i].Name</option>
+                    }
+                }
+            </optgroup>
+        }
+    }
+    else
+    {
+        <option selected>@Ingredient.Unit.Name</option>
+    }
+</select>
+
+@code {
+
+    /// Controls whether the unit of each ingredient should be editable
+    [Parameter]
+    public bool UnitEditable { get; set; } = true;
+
+    [Parameter]
+    public QuantifiedIngredient Ingredient { get; set; }
+
+    [Parameter]
+    public Func<(string, string), ApiUnit, ApiUnit, Task> OnUnitChange { get; set; }
+
+    private List<ApiUnit> AllUnits { get; set; }
+
+    private int _selectedUnit;
+    
+    private int SelectedUnit
+    {
+        get => _selectedUnit;
+        set
+        {
+            var newUnit = AllUnits[value];
+            Ingredient.Unit = newUnit;
+            var oldUnit = AllUnits[_selectedUnit];
+            OnUnitChange((Ingredient.Ingredient.Name, oldUnit.Name), oldUnit, newUnit);
+            _selectedUnit = value;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var client = Auth.GetNoAuthHttpClient(ClientFactory);
+        var units = await client.GetFromJsonAsync<List<ApiUnit>>("api/Unit");
+        if (units != null)
+        {
+            AllUnits = units;
+            _selectedUnit = AllUnits.FindIndex(unit => unit.Name == Ingredient.Unit.Name);
+        }
+    }
+
+}

@@ -1,8 +1,13 @@
 ﻿@using RecipEase.Shared.ApiResponses
+@using RecipEase.Shared.Models.Api
+@using RecipEase.Shared.Models
+@using RecipEase.Client.Shared.Util
+@using System.Linq.Dynamic.Core
+@inject IHttpClientFactory ClientFactory
 
 @if (Ingredients != null)
 {
-    @if (ShowSave)
+    @if (!ReadOnly && ShowSave)
     {
         <button @onclick="SaveHandler" class="btn btn-primary">
             Save Changes
@@ -20,7 +25,8 @@
             </button>
             <IngredientAddDropdown
                 DropdownLabel="add-ingredient-dropdown"
-                OnAdd="@OnNewIngredient"></IngredientAddDropdown>
+                OnAdd="@OnNewIngredient">
+            </IngredientAddDropdown>
         </div>
     }
     @foreach (var (key, quantifiedIngredient) in Ingredients)
@@ -34,9 +40,7 @@
                     class="form-control w-25"
                     placeholder="Amount"
                     @bind=@quantifiedIngredient.Quantity/>
-                <select class="form-control w-50" disabled="@(!UnitEditable)">
-                    <option selected>@quantifiedIngredient.Unit.Name</option>
-                </select>
+                <UnitSelect OnUnitChange="@ConvertQuantity" Ingredient="@quantifiedIngredient" UnitEditable="@UnitEditable"/>
             </div>
             <span class="badge badge-primary badge-pill">@(quantifiedIngredient.Ingredient.Rarity?.ToString())</span>
             <IngredientSuppliersButton IngredientName="@quantifiedIngredient.Ingredient.Name"></IngredientSuppliersButton>
@@ -56,7 +60,7 @@
 {
     /// Ingredients to be shown
     [Parameter]
-    public Dictionary<string, QuantifiedIngredient> Ingredients { get; set; }
+    public Dictionary<(string, string), QuantifiedIngredient> Ingredients { get; set; }
 
     /// Handler to be called when the user saves their changes
     [Parameter]
@@ -68,7 +72,7 @@
 
     /// Controls whether the unit of each ingredient should be editable
     [Parameter]
-    public bool UnitEditable { get; set; } = true;
+    public bool UnitEditable { get; set; } = false;
 
     /// Controls whether the delete button should be shown next to each ingredient.
     [Parameter]
@@ -89,24 +93,97 @@
     /// Handler to be called when the delete button is pressed on an item. Gets passed the ingredient key. If this is
     /// not provided, by default the ingredient will be removed on click.
     [Parameter]
-    public Action<string> OnDelete { get; set; }
+    public Action<(string, string)> OnDelete { get; set; }
 
     /// Handler to be called when the add button is pressed on an item. Gets passed the ingredient key. If this is
     /// not provided, by default nothing will happen.
     [Parameter]
-    public Action<string> OnAdd { get; set; }
+    public Action<(string, string)> OnAdd { get; set; }
 
+    private bool _readOnly;
+
+    /// Set to true if the ingredient list should not allow editing. Temporary unit conversions will be enabled with this property.
+    [Parameter]
+    public bool ReadOnly
+    {
+        get => _readOnly;
+        set
+        {
+            _readOnly = value;
+            if (!value) return;
+            QuantityEditable = false;
+            UnitEditable = true;
+            ShowNewIngredient = false;
+            ShowDelete = false;
+            ShowSave = false;
+        }
+    }
 
     [Parameter]
     public string LiClasses { get; set; }
 
-    private void DefaultDeleteHandler(string key)
+    private Dictionary<UnitType, List<ApiUnit>> Units { get; set; }
+
+    private async Task ConvertQuantity((string, string) ingredientKey, ApiUnit oldUnit, ApiUnit newUnit)
+    {
+    // We don't do any conversions if the user is allowed to edit the quantity themselves
+        if (QuantityEditable)
+        {
+            return;
+        }
+
+        if (oldUnit.Name == newUnit.Name)
+        {
+            return;
+        }
+
+        var client = Auth.GetNoAuthHttpClient(ClientFactory);
+        var uriBuilder = new UriBuilder(client.BaseAddress)
+        {
+            Path = "api/UnitConversion",
+            Query = $"convertsToUnitName={newUnit.Name}&convertsFromUnitName={oldUnit.Name}"
+        };
+        var conversion = await client.GetFromJsonAsync<ApiUnitConversion>(uriBuilder.ToString());
+        if (conversion != null)
+        {
+            var ingredient = Ingredients[ingredientKey];
+            // Remove the old keys with the old units
+            foreach (var key in Ingredients.Keys.Where(key => key.Item1 == ingredientKey.Item1))
+            {
+                Ingredients.Remove(key);
+            }
+            // Replace with a new key for the new unit
+            Ingredients.Add((ingredient.Ingredient.Name, newUnit.Name), ingredient);
+            
+            if (oldUnit.UnitType == newUnit.UnitType)
+            {
+                ingredient.Quantity *= conversion.Ratio;
+            }
+            else
+            {
+                switch (oldUnit.UnitType)
+                {
+                    case UnitType.Mass:
+                        ingredient.Quantity *= ingredient.Ingredient.WeightToVolRatio * conversion.Ratio;
+                        break;
+                    case UnitType.Volume:
+                        ingredient.Quantity *= 1 / ingredient.Ingredient.WeightToVolRatio * conversion.Ratio;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+            StateHasChanged();
+        }
+    }
+
+    private void DefaultDeleteHandler((string, string) key)
     {
         Ingredients.Remove(key);
         StateHasChanged();
     }
 
-    private EventCallback<MouseEventArgs> GetAddHandler(string ingredientKey)
+    private EventCallback<MouseEventArgs> GetAddHandler((string, string) ingredientKey)
     {
         void AddHandler(object _)
         {
@@ -119,7 +196,7 @@
         return GetEventCallback(AddHandler);
     }
 
-    private EventCallback<MouseEventArgs> GetDeleteHandler(string ingredientKey)
+    private EventCallback<MouseEventArgs> GetDeleteHandler((string, string) ingredientKey)
     {
         void DeleteHandler(object _)
         {
@@ -143,8 +220,8 @@
 
     private void OnNewIngredient(QuantifiedIngredient newIngredient)
     {
-        var key = newIngredient.Ingredient.Name;
-        if (!Ingredients.ContainsKey(key))
+        var key = (newIngredient.Ingredient.Name, newIngredient.Unit.Name);
+        if (Ingredients.Keys.All(k => k.Item1 != key.Item1))
         {
             Ingredients.Add(key, newIngredient);
             StateHasChanged();

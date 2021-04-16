@@ -58,9 +58,13 @@ namespace RecipEase.Server.Controllers
                 return Unauthorized();
             }
 
+            var query = from ing in _context.IngrInShoppingList where ing.IngrName == apiIngredient.IngrName select ing;
+            foreach (var ingrInShoppingList in query)
+            {
+                _context.Entry(ingrInShoppingList).State = EntityState.Deleted;
+            }
             var updatedIngredient = apiIngredient.ToIngrInShoppingList();
-            
-            _context.Entry(updatedIngredient).State = EntityState.Modified;
+            await _context.IngrInShoppingList.AddAsync(updatedIngredient);
         
             try
             {

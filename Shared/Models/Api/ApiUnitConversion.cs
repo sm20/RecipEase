@@ -13,6 +13,6 @@ namespace RecipEase.Shared.Models.Api
         [Required]
         public string ConvertsFromUnitName { get; set; }
         [Required]
-        public int Ratio { get; set; }
+        public double Ratio { get; set; }
     }
 }

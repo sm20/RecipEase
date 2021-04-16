@@ -60,6 +60,9 @@ namespace RecipEase.Server.Controllers
         /// 
         /// </remarks>
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesDefaultResponseType]
         public async Task<ActionResult<ApiIngredient>> GetIngredient(string id)
         {
             var apiIngredient = await _context.Ingredient.FindAsync(id);
@@ -69,12 +72,6 @@ namespace RecipEase.Server.Controllers
                 return NotFound();
             }
             return apiIngredient.ToApiIngredient();
-        }
-
-
-        private bool IngredientExists(string id)
-        {
-            return _context.Ingredient.Any(e => e.Name == id);
         }
     }
 }
