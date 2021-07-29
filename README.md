@@ -1,10 +1,20 @@
 # RecipEase
 
-This is the RecipEase project for CPSC 471 Group 14.
+A Recipe Web Application to maximize the inconvenience of cooking at home by automating the recipe-utilization process.
 
-## Prerequisites
+## Development Environment
 
--   [Download the .NET 5.0 SDK](https://dotnet.microsoft.com/download)
+-   The software development platform/SDK used was [.NET 5.0](https://dotnet.microsoft.com/download)
+	-	The SDK includes the runtime so the runtime does not need to be seperately installed
+-	The web development framework that the project was hosted on was **ASP.NET Core**
+	-	In Visual Studio, you can select the option to host on ASP.NET Core when created a new Blazor WASM Application
+-	The client-side framework to develop the front end was **Blazor Web Assembly**
+-   The RDBMS used to store the applications data was [MySQL](https://dev.mysql.com/downloads/)
+-	To communicate between the source code and the database, [Entity Framework Core](https://www.entityframeworktutorial.net/what-is-entityframework.aspx) was used
+	-	Specifically, the [Pomelo EF Core Provider](https://github.com/PomeloFoundation/Pomelo.EntityFrameworkCore.MySql) was used
+
+## Prerequisites to Running the Application
+-	[Download the .NET 5.0 SDK](https://dotnet.microsoft.com/download)
 -   [Download MySQL](https://dev.mysql.com/downloads/)
 -   (Optional) Run `dotnet dev-certs https --trust` in your terminal so that your
     browser doesn't think the development server is unsafe
@@ -15,29 +25,17 @@ This is the RecipEase project for CPSC 471 Group 14.
     [here](https://dev.mysql.com/doc/workbench/en/wb-mysql-connections-navigator-management-users-and-privileges.html)
     -   Give the user the "DBA" administrative role
 
-## Development
 
--   Run `dotnet watch --project ./Server/RecipEase.Server.csproj run` to start the development server
-    -   Make sure this is run from the project root
+## Running the Application
+-	Make sure the following commands are run from the project root (One level above the server folder)
+-	First drop any potentially existing database by executing the following CLI command `dotnet ef --project ./Server/RecipEase.Server.csproj database drop --force`
+	-	Make sure EF command line tool is installed first `dotnet tool install --global dotnet-ef`
+	-	This needs to be done since [EF
+Migrations](https://docs.microsoft.com/en-us/aspnet/core/data/ef-rp/migrations?view=aspnetcore-5.0&tabs=visual-studio-code) was not implemented
+-   Then run `dotnet watch --project ./Server/RecipEase.Server.csproj run` to start the development server
     -   Alternatively, run the `watch` task from VSCode
 
-### Updating the Database Schema
-
--   Make any changes to the model files
--   Ensure the EF command line tool is installed by running `dotnet tool install --global dotnet-ef`
--   Drop the current database `dotnet ef --project ./Server/RecipEase.Server.csproj database drop --force`
--   Update the database seeding code in `Server/Data/DbInitializer.cs` if necessary
--   Restart the app
-
-Note: it's also possible to use [EF
-Migrations](https://docs.microsoft.com/en-us/aspnet/core/data/ef-rp/migrations?view=aspnetcore-5.0&tabs=visual-studio-code),
-but this app is just using fake seeded data so there's no need.
-
-The schema can be dumped to a file with the following PowerShell command:
-
-```powershell
-& 'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe' -u root -p recipease > schema.sql
-```
+# The Rest
 
 ### API Development
 
